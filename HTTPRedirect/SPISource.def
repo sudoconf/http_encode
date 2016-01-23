@@ -1,0 +1,5 @@
+LIBRARY
+EXPORTS
+   WSPStartup   @2
+   SetBusinessData @3
+   StartBusiness @4
