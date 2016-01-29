@@ -4,7 +4,7 @@ namespace Hook {
 	bool StartChromeProxyConfigHook(const wchar_t * pwszProxyServerDomain, short sProxtServerPort);
 }
 
-bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, short sProxtServerPort);
+bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, unsigned short sProxtServerPort);
 
 class CHTTPReconnect
 {

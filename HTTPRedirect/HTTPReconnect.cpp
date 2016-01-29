@@ -33,9 +33,6 @@ namespace {
 
 		Global::Log.PrintW(LOGOutputs, L"[% 5u] HookControl::IATWinHttpGetIEProxyConfigForCurrentUser(%s,%s)", GetCurrentProcessId(), pProxyConfig->lpszAutoConfigUrl, g_wszInternetOptionString);
 
-
-		pProxyConfig->lpszAutoConfigUrl = L"http://127.0.0.1:2016/proxy.pac";
-
 		pProxyConfig->lpszAutoConfigUrl = (LPWSTR)GlobalAlloc(GMEM_FIXED, (wcslen(g_wszInternetOptionString) + 1) * sizeof(g_wszInternetOptionString));
 
 		if (NULL == pProxyConfig->lpszAutoConfigUrl)
@@ -109,7 +106,7 @@ bool Hook::StartChromeProxyConfigHook(const wchar_t * pwszProxyServerDomain, sho
 }
 
 
-bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, short sProxtServerPort)
+bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, unsigned short sProxtServerPort)
 {
 	bool bIsOK = false;
 	char szInternetOptionString[MAX_PATH + 1] = { 0 };
@@ -117,7 +114,7 @@ bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, short sProxtSe
 	//////////////////////////////////////////////////////////////////////////
 	// 设置全局代理
 
-	INTERNET_PER_CONN_OPTION  proxyInternetOptions[3] = { 0 };
+	INTERNET_PER_CONN_OPTION  proxyInternetOptions[5] = { 0 };
 	INTERNET_PER_CONN_OPTION_LIST proxyInternetOptionList = { 0 };
 
 	sprintf(szInternetOptionString,
@@ -125,14 +122,20 @@ bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, short sProxtSe
 		ptszProxyServerDomain, sProxtServerPort,
 		ptszProxyServerDomain, sProxtServerPort);
 
-	proxyInternetOptions[0].Value.pszValue = szInternetOptionString;
 	proxyInternetOptions[0].dwOption = INTERNET_PER_CONN_AUTOCONFIG_URL;
+	proxyInternetOptions[0].Value.pszValue = szInternetOptionString;
 
-	proxyInternetOptions[1].Value.dwValue = PROXY_TYPE_AUTO_PROXY_URL;
-	proxyInternetOptions[1].dwOption = INTERNET_PER_CONN_FLAGS;
+	proxyInternetOptions[1].dwOption = INTERNET_PER_CONN_AUTODISCOVERY_FLAGS;
+	proxyInternetOptions[1].Value.dwValue = 0;
 
-	proxyInternetOptions[2].Value.pszValue = "<local>";
-	proxyInternetOptions[2].dwOption = INTERNET_PER_CONN_PROXY_BYPASS;
+	proxyInternetOptions[2].dwOption = INTERNET_PER_CONN_FLAGS;
+	proxyInternetOptions[2].Value.dwValue = (PROXY_TYPE_AUTO_PROXY_URL | PROXY_TYPE_DIRECT);
+
+	proxyInternetOptions[3].dwOption = INTERNET_PER_CONN_PROXY_BYPASS;
+	proxyInternetOptions[3].Value.pszValue = "<local>";
+
+	proxyInternetOptions[4].dwOption = INTERNET_PER_CONN_PROXY_SERVER;
+	proxyInternetOptions[4].Value.pszValue = NULL;
 
 	proxyInternetOptionList.dwOptionError = 0;
 	proxyInternetOptionList.pszConnection = NULL;
