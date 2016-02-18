@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Hook {
-	bool StartChromeProxyConfigHook(const wchar_t * pwszProxyServerDomain, short sProxtServerPort);
+	bool StartChromeProxyConfigHook(const wchar_t * pwszProxyServerDomain, unsigned short sProxtServerPort);
 }
 
 bool SetGlobalWebBrowserProxy(const char * ptszProxyServerDomain, unsigned short sProxtServerPort);
