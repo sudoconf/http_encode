@@ -62,8 +62,8 @@ inline bool LockModule(_In_opt_ LPCSTR lpModuleName, _Out_ HMODULE * phModule)
 
 	if (bIsOK)
 		ASSERT(NULL != *phModule);
-	else
-		ASSERT(NULL == GetModuleHandle(lpModuleName));
+//	else
+//		ASSERT(NULL == GetModuleHandle(lpModuleName));
 
 	return TRUE == bIsOK;
 }
