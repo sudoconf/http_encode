@@ -160,6 +160,8 @@ bool SPIInstall(const wchar_t * pwszLSPProtocolName, const wchar_t *pwszPathName
 
 		bIsSuccess = true;
 
+		MessageBoxA(NULL, "调整顺序", ("调整顺序后, QQ 飞车安装一个无效的LSP会导致断网   返回后,会导致 LSP 无效"), MB_OK);//return bIsSuccess;	// 调整顺序后, QQ 飞车安装一个无效的LSP会导致断网   返回后,会导致 LSP 无效
+
 		FreeProvider(pAllProtocolsInfo);
 
 		if (NULL == (pAllProtocolsInfo = GetAllProvider(&nProtocols)))// 重新排序Winsock目录，将我们的协议链提前

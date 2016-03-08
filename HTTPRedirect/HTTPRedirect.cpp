@@ -258,25 +258,29 @@ int connectAndSendData(const char *szHost, unsigned short nPort, const char *pDa
 #define MAX_IP_STRING_LEN		MAX_IP6_STRING_LEN
 
 typedef struct _BUSINESS_DATA {
-	sockaddr_in addrPACServer ;
-	sockaddr_in addrEncodeSock ;
+	USHORT usPACServerProt;
+	CHAR szPACServerIP[MAX_IP_STRING_LEN + 1];
+	USHORT usEncodeSockProt;
+	CHAR szEncodeSockIP[MAX_IP_STRING_LEN + 1];
 }BUSINESS_DATA,* PBUSINESS_DATA;
 
 HANDLE WINAPI SetBusinessData(sockaddr_in * paddrPACSocket, sockaddr_in * paddrEncodeSocket)
 {
 	BUSINESS_DATA tbdBusinessData = { 0 };
-	tbdBusinessData.addrPACServer = *paddrPACSocket;
-	tbdBusinessData.addrEncodeSock = *paddrEncodeSocket;
 
 	CHAR szBuffer[MAX_IP_STRING_LEN + 1] = { 0 };
 
-	__inet_ntop(AF_INET, tbdBusinessData.addrPACServer.sin_addr, szBuffer, MAX_IP_STRING_LEN);
-	Global::Log.PrintA(LOGOutputs, "SetPACBusinessData(%s,%u)", szBuffer, ntohs(tbdBusinessData.addrPACServer.sin_port));
+	__inet_ntop(AF_INET, paddrPACSocket->sin_addr, szBuffer, MAX_IP_STRING_LEN);
 
-	__inet_ntop(AF_INET, tbdBusinessData.addrEncodeSock.sin_addr, szBuffer, MAX_IP_STRING_LEN);
-	Global::Log.PrintA(LOGOutputs, "SetEncodeBusinessData(%s,%u)", szBuffer, ntohs(tbdBusinessData.addrEncodeSock.sin_port));
+	strcpy(tbdBusinessData.szPACServerIP, szBuffer);
+	tbdBusinessData.usPACServerProt = ntohs(paddrPACSocket->sin_port);
 
-	return Common::SetBufferToShareMap("LPENCODE_BUSINESS_DATA", &tbdBusinessData, sizeof(BUSINESS_DATA));
+	__inet_ntop(AF_INET, paddrEncodeSocket->sin_addr, szBuffer, MAX_IP_STRING_LEN);
+
+	strcpy(tbdBusinessData.szEncodeSockIP, szBuffer);
+	tbdBusinessData.usEncodeSockProt = ntohs(paddrEncodeSocket->sin_port);
+
+	return Common::SetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", &tbdBusinessData, sizeof(BUSINESS_DATA));
 }
 
 DWORD WINAPI StartBusiness_Thread(void *)
@@ -285,28 +289,34 @@ DWORD WINAPI StartBusiness_Thread(void *)
 	CHAR szBuffer[MAX_IP_STRING_LEN + 1] = { 0 };
 	WCHAR wszBuffer[MAX_IP_STRING_LEN + 1] = { 0 };
 
-	if (false == Common::GetBufferToShareMap("LPENCODE_BUSINESS_DATA", (void**)&pBusinessData))
+	if (false == Common::GetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", (void**)&pBusinessData))
 	{
-		Global::Log.PrintA(LOGOutputs, "SetBusiness failed: %u", ::GetLastError());
+		Global::Log.PrintA(LOGOutputs, "[% 5u] StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
 		return -1;
 	}
 
-	__inet_ntop(AF_INET, pBusinessData->addrPACServer.sin_addr, szBuffer, MAX_IP_STRING_LEN);
-	Global::Log.PrintA(LOGOutputs, "SetPACBusinessData(%s,%u)", szBuffer, ntohs(pBusinessData->addrPACServer.sin_port));
+	Global::Log.PrintA(LOGOutputs, "[% 5u] PAC:(%s,%u)", GetCurrentProcessId(), pBusinessData->szPACServerIP, pBusinessData->usPACServerProt);
 
-	__inet_ntop(AF_INET, pBusinessData->addrEncodeSock.sin_addr, szBuffer, MAX_IP_STRING_LEN);
-	Global::Log.PrintA(LOGOutputs, "SetEncodeBusinessData(%s,%u)", szBuffer, ntohs(pBusinessData->addrEncodeSock.sin_port));
+	Global::Log.PrintA(LOGOutputs, "[% 5u] ENCODE:(%s,%u)", GetCurrentProcessId(), pBusinessData->szEncodeSockIP, pBusinessData->usEncodeSockProt);
 
 	//Global::cHttpReconnect.SetWebBrowserProxy(pcszProxyHost, usProxyPort);
 
-	if (0 != pBusinessData->addrEncodeSock.sin_port)
-		StartHTTPSeclusion(pBusinessData->addrEncodeSock);
-
-	if (0 != pBusinessData->addrPACServer.sin_port)
+	if (0 != pBusinessData->usEncodeSockProt)
 	{
-		SetGlobalWebBrowserProxy(__inet_ntop(AF_INET, pBusinessData->addrPACServer.sin_addr, (char *)wszBuffer, MAX_IP_STRING_LEN), ntohs(pBusinessData->addrPACServer.sin_port));
+		sockaddr_in serv_addr = {0};
 
-		Hook::StartChromeProxyConfigHook(__inet_ntopw(AF_INET, pBusinessData->addrPACServer.sin_addr, wszBuffer, MAX_IP_STRING_LEN), ntohs(pBusinessData->addrPACServer.sin_port));
+		serv_addr.sin_family = AF_INET;
+		serv_addr.sin_port = htons(pBusinessData->usEncodeSockProt);
+		serv_addr.sin_addr.s_addr = inet_addr(pBusinessData->szEncodeSockIP);
+
+		StartHTTPSeclusion(serv_addr);
+	}
+
+	if (0 != pBusinessData->usPACServerProt)
+	{
+		SetGlobalWebBrowserProxy(pBusinessData->szPACServerIP, pBusinessData->usPACServerProt);
+
+		Hook::StartChromeProxyConfigHook(Common::STR2WSTR(pBusinessData->szPACServerIP, wszBuffer), pBusinessData->usPACServerProt);
 	}
 
 	return 0;

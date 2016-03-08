@@ -37,10 +37,30 @@ void StopHTTPSeclusion()
 		CloseHandle(Global::hWSASendMutex[i]);
 	}
 }
+#pragma data_seg("MySec")  
+HHOOK g_hHook = NULL;//全局变量，保存钩子的句柄
+#pragma data_seg()  
+#pragma comment(linker, "/section:MySec,RWS")  
+
+// 鼠标钩子过程  
+LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{    //传给系统中的下一个钩子   
+	return CallNextHookEx(g_hHook, nCode, wParam, lParam);
+}
+// 安装鼠标钩子过程的函数  
+void SetHook() 
+{
+	if (g_hHook)
+		return;
+
+	g_hHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, Common::GetModuleHandleByAddr(SetHook), NULL);
+
+	Global::Log.PrintA(LOGOutputs, "[% 5u] SetHook(0x%p): %u", GetCurrentProcessId(), Common::GetModuleHandleByAddr(SetHook), g_hHook);
+}
 
 bool StartHTTPSeclusion(sockaddr_in addrTargetSocket)
 {
-	Hook::StartSPISocketHook();
+	SetHook();//Hook::StartSPISocketHook();
 	Hook::StartTridentSocketHook();
 	Hook::StartChromeSocketHook();
 
