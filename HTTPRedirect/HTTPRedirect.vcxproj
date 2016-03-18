@@ -142,16 +142,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ChromeSocketHook.h" />
+    <ClInclude Include="ChromeSocket.h" />
+    <ClInclude Include="FakeCommandLine.h" />
     <ClInclude Include="HTTPReconnect.h" />
     <ClInclude Include="HTTPRedirect.h" />
     <ClInclude Include="HTTPSeclusion.h" />
     <ClInclude Include="SPIInstaller.h" />
     <ClInclude Include="SPISocket.h" />
-    <ClInclude Include="TridentSocketHook.h" />
+    <ClInclude Include="TridentSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChromeSocket.cpp" />
+    <ClCompile Include="FakeCommandLine.cpp" />
     <ClCompile Include="HTTPReconnect.cpp" />
     <ClCompile Include="HTTPRedirect.cpp" />
     <ClCompile Include="HTTPSeclusion.cpp" />

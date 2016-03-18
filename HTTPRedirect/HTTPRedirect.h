@@ -7,6 +7,7 @@
 #include <wininet.h>
 
 #define ASSERT assert
+#define count(_array) (sizeof(_array) / sizeof(_array[0]))
 
 #define NAME_FUNCTION_SEND												"send"
 #define NAME_FUNCTION_WSASEND										"WSASend"

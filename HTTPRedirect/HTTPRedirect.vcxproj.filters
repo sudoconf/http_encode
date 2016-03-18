@@ -19,16 +19,16 @@
     <Filter Include="源文件\Seclusion">
       <UniqueIdentifier>{b627aa4b-50a0-4968-a4ca-45356747e3cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\CommandLine">
+      <UniqueIdentifier>{8d69c16d-5482-46a9-9d87-fe25d9c06b7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\CommandLine">
+      <UniqueIdentifier>{a001aa6a-63a0-4fb7-acde-15ccd779407a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HTTPReconnect.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ChromeSocketHook.h">
-      <Filter>头文件\Seclusion</Filter>
-    </ClInclude>
-    <ClInclude Include="TridentSocketHook.h">
-      <Filter>头文件\Seclusion</Filter>
     </ClInclude>
     <ClInclude Include="HTTPRedirect.h">
       <Filter>头文件</Filter>
@@ -41,6 +41,15 @@
     </ClInclude>
     <ClInclude Include="SPIInstaller.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FakeCommandLine.h">
+      <Filter>头文件\CommandLine</Filter>
+    </ClInclude>
+    <ClInclude Include="ChromeSocket.h">
+      <Filter>头文件\Seclusion</Filter>
+    </ClInclude>
+    <ClInclude Include="TridentSocket.h">
+      <Filter>头文件\Seclusion</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="SPIInstaller.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FakeCommandLine.cpp">
+      <Filter>源文件\CommandLine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

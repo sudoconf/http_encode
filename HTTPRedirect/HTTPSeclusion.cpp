@@ -1,8 +1,8 @@
 #include "HTTPRedirect.h"
 
 #include "HTTPSeclusion.h"
-#include "TridentSocketHook.h"
-#include "ChromeSocketHook.h"
+#include "TridentSocket.h"
+#include "ChromeSocket.h"
 
 #include "HookControl\HookHelp.h"
 #include "SPISocket.h"

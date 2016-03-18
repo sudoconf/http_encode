@@ -1,6 +1,6 @@
 #include "HTTPRedirect.h"
 
-#include "ChromeSocketHook.h"
+#include "ChromeSocket.h"
 
 #include "HookControl\HookHelp.h"
 #include "HookControl\InlineHook.h"

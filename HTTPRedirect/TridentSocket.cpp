@@ -1,6 +1,6 @@
 #include "HTTPRedirect.h"
 
-#include "TridentSocketHook.h"
+#include "TridentSocket.h"
 
 #include "HookControl\IATHook.h"
 #include "HookControl\FakeSend.h"

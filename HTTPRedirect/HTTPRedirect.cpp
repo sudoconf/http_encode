@@ -3,6 +3,7 @@
 #include "HTTPRedirect.h"
 #include "HTTPSeclusion.h"
 #include "HTTPReconnect.h"
+#include "FakeCommandLine.h"
 
 #include "HookControl\HookHelp.h"
 #include "CommonControl\Commondef.h"
@@ -326,6 +327,7 @@ DWORD WINAPI StartBusiness(void *)
 {
 	DWORD dwThreadId = 0;
 
+	Hook::StartCommandLineHook();
 	CloseHandle(CreateThread(NULL, 0, StartBusiness_Thread, NULL, 0, &dwThreadId));
 
 	return dwThreadId;
