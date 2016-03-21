@@ -240,12 +240,12 @@ bool Hook::StartCommandLineHook()
 	if (NULL != wcsistr(wszProtocolCommandLine, pcwszStartImagePathName)) {
 		Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association Hit: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
-		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) {
-			bIsHit = true; // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
+		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) { // 如果不包含 HTTP
+			bIsHit = true;  // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
 		}
 
-		if (NULL != wcsistr(pcwszStartCommandLine, L"-")) {
-			bIsHit = false; // 如果默认浏览器通过带参数打开,直接放过
+		if (NULL != wcsistr(pcwszStartCommandLine, L"-")) { // 如果有任意参数
+			bIsHit = false; // 放过
 		}
 
 		if (false == bIsHit) {
