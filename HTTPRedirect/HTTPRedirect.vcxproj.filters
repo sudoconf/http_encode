@@ -25,6 +25,9 @@
     <Filter Include="头文件\CommandLine">
       <UniqueIdentifier>{a001aa6a-63a0-4fb7-acde-15ccd779407a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\pcre">
+      <UniqueIdentifier>{1e1f5b81-61a6-4d6a-ac97-0c70a9db177c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HTTPReconnect.h">
@@ -51,6 +54,9 @@
     <ClInclude Include="TridentSocket.h">
       <Filter>头文件\Seclusion</Filter>
     </ClInclude>
+    <ClInclude Include="pcre\pcre.h">
+      <Filter>源文件\pcre</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HTTPReconnect.cpp">
@@ -76,6 +82,12 @@
     </ClCompile>
     <ClCompile Include="FakeCommandLine.cpp">
       <Filter>源文件\CommandLine</Filter>
+    </ClCompile>
+    <ClCompile Include="pcre\pcre.c">
+      <Filter>源文件\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="pcre\study.c">
+      <Filter>源文件\pcre</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

