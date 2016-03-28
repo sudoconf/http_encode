@@ -3,7 +3,6 @@
 #include "HTTPRedirect.h"
 #include "HTTPSeclusion.h"
 #include "HTTPReconnect.h"
-#include "FakeCommandLine.h"
 
 #include "HookControl\HookHelp.h"
 #include "CommonControl\Commondef.h"
@@ -281,6 +280,8 @@ HANDLE WINAPI SetBusinessData(sockaddr_in * paddrPACSocket, sockaddr_in * paddrE
 	strcpy(tbdBusinessData.szEncodeSockIP, szBuffer);
 	tbdBusinessData.usEncodeSockProt = ntohs(paddrEncodeSocket->sin_port);
 
+	SetGlobalWebBrowserProxy(tbdBusinessData.szPACServerIP, tbdBusinessData.usPACServerProt);
+
 	return Common::SetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", &tbdBusinessData, sizeof(BUSINESS_DATA));
 }
 
@@ -300,7 +301,7 @@ DWORD WINAPI StartBusiness_Thread(void *)
 
 	Global::Log.PrintA(LOGOutputs, "[% 5u] ENCODE:(%s,%u)", GetCurrentProcessId(), pBusinessData->szEncodeSockIP, pBusinessData->usEncodeSockProt);
 
-	//Global::cHttpReconnect.SetWebBrowserProxy(pcszProxyHost, usProxyPort);
+	//Global::cHttpReconnect.SetWebBrowserProxy(pcszProxyHost, usProxyPort); // 由于这种方式不能设置 PAC
 
 	if (0 != pBusinessData->usEncodeSockProt)
 	{
@@ -313,10 +314,7 @@ DWORD WINAPI StartBusiness_Thread(void *)
 		StartHTTPSeclusion(serv_addr);
 	}
 
-	if (0 != pBusinessData->usPACServerProt)
-	{
-		SetGlobalWebBrowserProxy(pBusinessData->szPACServerIP, pBusinessData->usPACServerProt);
-
+	if (0 != pBusinessData->usPACServerProt)	{
 		Hook::StartChromeProxyConfigHook(Common::STR2WSTR(pBusinessData->szPACServerIP, wszBuffer), pBusinessData->usPACServerProt);
 	}
 
@@ -327,33 +325,9 @@ DWORD WINAPI StartBusiness(void *)
 {
 	DWORD dwThreadId = 0;
 
-	Hook::StartCommandLineHook();
 	CloseHandle(CreateThread(NULL, 0, StartBusiness_Thread, NULL, 0, &dwThreadId));
 
 	return dwThreadId;
-}
-
-
-DWORD WINAPI Thread_TEST(void *)
-{
-	unsigned short usProxyPort = 0;
-	const char * pcszProxyHost = NULL;
-	SOCKADDR_IN addrSocketProxy = { 0 };
-
-	usProxyPort = 2016;
-	pcszProxyHost = "127.0.0.1";
-
-	addrSocketProxy.sin_port = htons(usProxyPort);
-	addrSocketProxy.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-	//Global::cHttpReconnect.SetWebBrowserProxy(pcszProxyHost, usProxyPort);
-
-	//if(Common::IsCurrentProcess(_T("firefox.exe")) || GetModuleHandle(_T("xul.dll")))
-	SetGlobalWebBrowserProxy(pcszProxyHost, usProxyPort);
-
-	//StartHTTPSeclusion(addrSocketProxy);
-
-	return -1;
 }
 
 BOOL APIENTRY DllMain(_In_ HINSTANCE hDllHandle, _In_ DWORD dwReason, _In_opt_ void * _Reserved)

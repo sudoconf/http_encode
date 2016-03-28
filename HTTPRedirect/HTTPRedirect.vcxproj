@@ -143,7 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ChromeSocket.h" />
-    <ClInclude Include="FakeCommandLine.h" />
     <ClInclude Include="HTTPReconnect.h" />
     <ClInclude Include="HTTPRedirect.h" />
     <ClInclude Include="HTTPSeclusion.h" />
@@ -154,7 +153,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChromeSocket.cpp" />
-    <ClCompile Include="FakeCommandLine.cpp" />
     <ClCompile Include="HTTPReconnect.cpp" />
     <ClCompile Include="HTTPRedirect.cpp" />
     <ClCompile Include="HTTPSeclusion.cpp" />

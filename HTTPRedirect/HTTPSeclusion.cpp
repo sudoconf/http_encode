@@ -60,7 +60,7 @@ void SetHook()
 
 bool StartHTTPSeclusion(sockaddr_in addrTargetSocket)
 {
-	SetHook();//Hook::StartSPISocketHook();
+	//SetHook();//Hook::StartSPISocketHook();
 	Hook::StartTridentSocketHook();
 	Hook::StartChromeSocketHook();
 
