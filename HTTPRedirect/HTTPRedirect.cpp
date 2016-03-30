@@ -19,7 +19,7 @@ __declspec(dllexport) void _()
 }
 
 namespace Global {
-	CDebug Log("Test.log");
+	CDebug Log("HTTP_Redirect.log");
 	CHTTPReconnect cHttpReconnect;
 }
 
@@ -293,7 +293,7 @@ DWORD WINAPI StartBusiness_Thread(void *)
 
 	if (false == Common::GetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", (void**)&pBusinessData))
 	{
-		Global::Log.PrintA(LOGOutputs, "[% 5u] StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
+		Global::Log.PrintA(LOGOutputs, "[% 5u] HTTP StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
 		return -1;
 	}
 

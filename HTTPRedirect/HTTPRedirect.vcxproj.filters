@@ -19,9 +19,6 @@
     <Filter Include="源文件\Seclusion">
       <UniqueIdentifier>{b627aa4b-50a0-4968-a4ca-45356747e3cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\pcre">
-      <UniqueIdentifier>{1e1f5b81-61a6-4d6a-ac97-0c70a9db177c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HTTPReconnect.h">
@@ -45,9 +42,6 @@
     <ClInclude Include="TridentSocket.h">
       <Filter>头文件\Seclusion</Filter>
     </ClInclude>
-    <ClInclude Include="pcre\pcre.h">
-      <Filter>源文件\pcre</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HTTPReconnect.cpp">
@@ -70,12 +64,6 @@
     </ClCompile>
     <ClCompile Include="SPIInstaller.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="pcre\pcre.c">
-      <Filter>源文件\pcre</Filter>
-    </ClCompile>
-    <ClCompile Include="pcre\study.c">
-      <Filter>源文件\pcre</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

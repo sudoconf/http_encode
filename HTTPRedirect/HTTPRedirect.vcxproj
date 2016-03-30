@@ -146,7 +146,6 @@
     <ClInclude Include="HTTPReconnect.h" />
     <ClInclude Include="HTTPRedirect.h" />
     <ClInclude Include="HTTPSeclusion.h" />
-    <ClInclude Include="pcre\pcre.h" />
     <ClInclude Include="SPIInstaller.h" />
     <ClInclude Include="SPISocket.h" />
     <ClInclude Include="TridentSocket.h" />
@@ -156,8 +155,6 @@
     <ClCompile Include="HTTPReconnect.cpp" />
     <ClCompile Include="HTTPRedirect.cpp" />
     <ClCompile Include="HTTPSeclusion.cpp" />
-    <ClCompile Include="pcre\pcre.c" />
-    <ClCompile Include="pcre\study.c" />
     <ClCompile Include="SPIInstaller.cpp" />
     <ClCompile Include="SPISocket.cpp" />
     <ClCompile Include="TridentSocket.cpp" />

@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPRedirect", "HTTPRedirect\HTTPRedirect.vcxproj", "{08886773-B85D-4681-967F-398D04550B6B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CMDRedirect", "CMDRedirect\CMDRedirect.vcxproj", "{023668C9-9006-4FC4-B102-7F1C81F6EC11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{08886773-B85D-4681-967F-398D04550B6B}.Release|x64.Build.0 = Release|x64
 		{08886773-B85D-4681-967F-398D04550B6B}.Release|x86.ActiveCfg = Release|Win32
 		{08886773-B85D-4681-967F-398D04550B6B}.Release|x86.Build.0 = Release|Win32
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x64.ActiveCfg = Debug|x64
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x64.Build.0 = Debug|x64
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x86.ActiveCfg = Debug|Win32
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x86.Build.0 = Debug|Win32
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Release|x64.ActiveCfg = Release|x64
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Release|x64.Build.0 = Release|x64
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Release|x86.ActiveCfg = Release|Win32
+		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
