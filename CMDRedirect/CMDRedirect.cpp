@@ -15,7 +15,7 @@ __declspec(dllexport) void _()
 }
 
 namespace Global {
-	CDebug Log("CMD_Redirect.log");
+	CDebug Log(_T("CMD_Redirect.log"));
 	__pfnGetCommandLineW pfnGetCommandLineW = NULL;
 }
 
@@ -23,10 +23,10 @@ DWORD WINAPI StartBusiness_Thread(void *)
 {
 	void * pBusinessData = NULL;
 
-	if (false == Common::GetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", (void**)&pBusinessData))
+	if (false == Common::GetBufferToShareMap(_T("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA"), (void**)&pBusinessData))
 	{
 		HookControl::UnInlineHook(GetProcAddress(LoadLibrary(_T("Kernel32.dll")), "GetCommandLineW"), Global::pfnGetCommandLineW);
-		Global::Log.PrintA(LOGOutputs, "[% 5u] CMD StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
+		Global::Log.PrintA(LOGOutputsA, "[% 5u] CMD StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
 		return -1;
 	}
 
