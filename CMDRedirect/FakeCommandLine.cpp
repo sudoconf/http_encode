@@ -78,6 +78,8 @@ namespace {
 	namespace {
 #define MAX_OVECCOUNT 0x30
 		const char * ptszHitRedirectURLLists[] = {
+			_S("\\liebao.exe\"? +-ico\\d ?$"),
+
 			_S("(?: |http[s]?://)hao\\.360\\.cn/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
 			_S("(?: |http[s]?://)www\\.duba\\.com/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
