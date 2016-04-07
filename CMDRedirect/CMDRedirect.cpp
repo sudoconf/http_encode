@@ -2,9 +2,8 @@
 
 #include "FakeCommandLine.h"
 
-#include "HookControl\HookHelp.h"
 #include "HookControl\InlineHook.h"
-#include "CommonControl\Commondef.h"
+#include "CommonControl\Commonfun.h"
 
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "HookControl.lib")
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "CommonControl.lib")

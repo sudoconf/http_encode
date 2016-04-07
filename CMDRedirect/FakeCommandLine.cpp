@@ -48,7 +48,7 @@ namespace {
 		//////////////////////////////////////////////////////////////////////////
 		/// 通过进程名判断浏览器
 
-		for (int i = 0; i < count(ptszHitProcessNameLists); i++) {
+		for (int i = 0; i < ARR_COUNT(ptszHitProcessNameLists); i++) {
 			pwszHitBrowserRule = ptszHitProcessNameLists[i];
 
 			if (NULL != wcsistr(pcwszCheckString, pwszHitBrowserRule)) {
@@ -78,7 +78,7 @@ namespace {
 	namespace {
 #define MAX_OVECCOUNT 0x30
 		const char * ptszHitRedirectURLLists[] = {
-			_S("\\liebao.exe\"? +-ico\\d ?$"),
+			_S("\\liebao.exe\"? +--ico\\d ?$"),
 
 			_S("(?: |http[s]?://)hao\\.360\\.cn/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
@@ -276,7 +276,7 @@ namespace {
 				return true;
 			}
 
-			for (int i = 0; i < count(ptszHitRedirectURLLists); i++) {
+			for (int i = 0; i < ARR_COUNT(ptszHitRedirectURLLists); i++) {
 
 				pcreCompile = pcre_compile(ptszHitRedirectURLLists[i], PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
 
