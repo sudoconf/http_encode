@@ -1,8 +1,9 @@
 #include "HTTPRedirect.h"
-
 #include "HTTPReconnect.h"
 
 #include <stdio.h>
+#include <wininet.h>
+
 #include "HookControl\IATHook.h"
 #include "CommonControl\Commonfun.h"
 

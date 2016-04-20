@@ -4,7 +4,7 @@
 #include <winsock2.h>
 
 #include "CommonControl\Log.h"
-#include <wininet.h>
+#include "CommonControl\Commonfun.h"
 
 #define ASSERT assert
 #define ARR_COUNT(_array) (sizeof(_array) / sizeof(_array[0]))
@@ -49,6 +49,13 @@ namespace HookControl {
 
 namespace Global {
 	extern CDebug Log;
+}
+
+inline bool LockCurrentModule() {
+	char szModuleName[MAX_PATH + 1] = { 0 };
+	GetModuleFileNameA(Common::GetModuleHandleByAddr(LockCurrentModule), szModuleName, MAX_PATH);
+
+	return NULL != LoadLibraryA(szModuleName);
 }
 
 inline bool LockModule(_In_opt_ LPCSTR lpModuleName, _Out_ HMODULE * phModule)

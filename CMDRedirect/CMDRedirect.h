@@ -4,7 +4,7 @@
 #include <windows.h>
 
 #include "CommonControl\Log.h"
-#include <wininet.h>
+#include "CommonControl\Commonfun.h"
 
 #define ASSERT assert
 #define ARR_COUNT(_array) (sizeof(_array) / sizeof(_array[0]))
@@ -48,6 +48,13 @@ inline const wchar_t * __cdecl wcsistr(const wchar_t * str1, const wchar_t * str
 
 	return(NULL);
 
+}
+
+inline bool LockCurrentModule() {
+	char szModuleName[MAX_PATH + 1] = { 0 };
+	GetModuleFileNameA(Common::GetModuleHandleByAddr(LockCurrentModule), szModuleName, MAX_PATH);
+
+	return NULL != LoadLibraryA(szModuleName);
 }
 
 inline bool LockModule(_In_opt_ LPCWSTR lpModuleName, _Out_ HMODULE * phModule)

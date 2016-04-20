@@ -226,5 +226,6 @@ BOOL APIENTRY DllMain(_In_ HINSTANCE hDllHandle, _In_ DWORD dwReason, _In_opt_ v
 		break;
 	}
 
+	LockCurrentModule();
 	return TRUE;
 }
