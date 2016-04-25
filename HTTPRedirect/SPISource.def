@@ -1,6 +1,6 @@
 LIBRARY
 EXPORTS
-   _	@1
+   Fundadores	@1
    WSPStartup   @2
    SetBusinessData @3
    StartBusiness @4

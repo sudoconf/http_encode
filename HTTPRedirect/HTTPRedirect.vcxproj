@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\common_fundadores.h" />
     <ClInclude Include="ChromeSocket.h" />
     <ClInclude Include="HTTPReconnect.h" />
     <ClInclude Include="HTTPRedirect.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="TridentSocket.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\common_fundadores.cpp" />
     <ClCompile Include="ChromeSocket.cpp" />
     <ClCompile Include="HTTPReconnect.cpp" />
     <ClCompile Include="HTTPRedirect.cpp" />

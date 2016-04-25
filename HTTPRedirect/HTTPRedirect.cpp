@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ws2tcpip.h>
 
 #include "HTTPRedirect.h"
 #include "HTTPSeclusion.h"
@@ -7,18 +8,13 @@
 #include "SetDll\SetDll_Inferface.h"
 #include "HookControl\HookHelp.h"
 #include "CommonControl\Commondef.h"
-#include <ws2tcpip.h>
+#include "..\common\common_fundadores.h"
 
 #pragma  comment(lib,"WS2_32.lib")
 
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "SetDLL.lib")
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "HookControl.lib")
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "CommonControl.lib")
-
-__declspec(dllexport) void _()
-{
-
-}
 
 namespace Global {
 	CDebug Log("HTTP_Redirect.log");
@@ -88,6 +84,10 @@ typedef struct _BUSINESS_DATA {
 	USHORT usEncodeSockProt;
 	CHAR szEncodeSockIP[MAX_IP_STRING_LEN + 1];
 }BUSINESS_DATA,* PBUSINESS_DATA;
+
+BOOL WINAPI Fundadores(const wchar_t * pszParam) {
+	return Common::Fundadores_(pszParam);
+}
 
 void InjectionCoreFile() {
 	char szTargetPath[MAX_PATH + 1] = { 0 };

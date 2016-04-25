@@ -134,14 +134,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\common_fundadores.h" />
     <ClInclude Include="CMDRedirect.h" />
-    <ClInclude Include="common_fundadores.h" />
     <ClInclude Include="FakeCommandLine.h" />
     <ClInclude Include="pcre\pcre.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\common_fundadores.cpp" />
     <ClCompile Include="CMDRedirect.cpp" />
-    <ClCompile Include="common_fundadores.cpp" />
     <ClCompile Include="FakeCommandLine.cpp" />
     <ClCompile Include="pcre\pcre.c" />
     <ClCompile Include="pcre\study.c" />

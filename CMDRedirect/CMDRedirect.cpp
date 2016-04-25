@@ -1,10 +1,10 @@
 #include "CMDRedirect.h"
 
 #include "FakeCommandLine.h"
-#include "common_fundadores.h"
 
 #include "HookControl\InlineHook.h"
 #include "CommonControl\Commonfun.h"
+#include "..\common\common_fundadores.h"
 
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "HookControl.lib")
 #pragma  comment(lib,DIRECTORY_LIB_INTERNAL "CommonControl.lib")

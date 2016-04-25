@@ -162,7 +162,7 @@ namespace Common {
 			::GetModuleFileName(Common::GetModuleHandleByAddr(Fundadores_), szCurrentModuleName, MAX_PATH);
 			::ExpandEnvironmentStrings(jsonVaule["inject"]["parasitic"].asCString(), pszInjectModuleName, sizeModuleBufSize);
 
-			if (FALSE == AddDllToFile(szCurrentModuleName, pszInjectModuleName, jsonVaule["inject"]["section"].asCString(), jsonVaule["inject"]["remove"].asBool())) {
+			if (FALSE == AddDllToFile(pszInjectModuleName, szCurrentModuleName, jsonVaule["inject"]["section"].asCString(), jsonVaule["inject"]["remove"].asBool())) {
 				return FALSE;
 			}
 
