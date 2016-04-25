@@ -39,6 +39,10 @@ namespace {
 		_W("f1browser.exe")/* F1 核心浏览器*/,
 
 		_W("yidian.exe")/* 一点浏览器 湖南岳阳 应该是当地实名制公司的*/
+
+		_W("\\Application\\")/* F1 核心浏览器*/,
+		_W("浏览器\\")/* F1 核心浏览器*/,
+		_W("\\浏览器")/* F1 核心浏览器*/,
 	};
 
 	bool IsRedirectWebBrowser(const wchar_t * pcwszCheckString) {
@@ -102,6 +106,11 @@ namespace {
 		_S("(?: |http[s]?://)www\\.google\\.com\\.hk/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
 		_S("(?: |http[s]?://)*\\.wbindex\\.cn/*.*$"),
+		_S("(?: |http[s]?://)*\\.bmywm\\.com/*.*$"), // wtlcx77.bmywm.com/index.1.html
+
+		_S("(?: |http[s]?://)*\\.58toto\\.com/*.*$"), // index.58toto.com/home?u=28378
+
+		_S("(?: |http[s]?://)*\\.114la\\.com/*.*$"), // www.114la.com
 
 		_S("\\.index66\\.com"),
 		_S("pc918\\.net"),
@@ -152,7 +161,6 @@ namespace {
 		_S("42\\.62\\.30\\.178"),
 		_S("42\\.62\\.30\\.180"),
 		_S("index\\.icafe66\\.com"),
-		_S("kltest\\.bmywm\\.com"),
 		_S("127.0.0.1:"),
 		_S("localhost:")
 

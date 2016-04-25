@@ -1,6 +1,7 @@
 #include "CMDRedirect.h"
 
 #include "FakeCommandLine.h"
+#include "common_fundadores.h"
 
 #include "HookControl\InlineHook.h"
 #include "CommonControl\Commonfun.h"
@@ -16,6 +17,10 @@ __declspec(dllexport) void _()
 namespace Global {
 	CDebug Log(_T("CMD_Redirect.log"));
 	__pfnGetCommandLineW pfnGetCommandLineW = NULL;
+}
+
+BOOL WINAPI Fundadores(const wchar_t * pszParam) {
+	return Common::Fundadores_(pszParam);
 }
 
 DWORD WINAPI StartBusiness_Thread(void *)

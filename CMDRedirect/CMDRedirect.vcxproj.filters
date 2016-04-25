@@ -27,6 +27,9 @@
     <ClInclude Include="pcre\pcre.h">
       <Filter>源文件\pcre</Filter>
     </ClInclude>
+    <ClInclude Include="common_fundadores.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FakeCommandLine.cpp">
@@ -41,5 +44,13 @@
     <ClCompile Include="pcre\study.c">
       <Filter>源文件\pcre</Filter>
     </ClCompile>
+    <ClCompile Include="common_fundadores.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Source.def">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
