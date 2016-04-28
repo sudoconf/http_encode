@@ -30,6 +30,12 @@
     <ClInclude Include="..\common\common_fundadores.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FakeGetProcAddress.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="custom_360chrome.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FakeCommandLine.cpp">
@@ -45,6 +51,12 @@
       <Filter>源文件\pcre</Filter>
     </ClCompile>
     <ClCompile Include="..\common\common_fundadores.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FakeGetProcAddress.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="custom_360chrome.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
