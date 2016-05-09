@@ -187,7 +187,7 @@ namespace {
 		int nErroroffset = 0;
 		const char * pcszErrorptr = NULL;
 
-		pcreCompile = pcre_compile("^(?:\".|.):\\\\[^\"]+.exe\"? *$", PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
+		pcreCompile = pcre_compile("\"?[a-z]:\\\\[^\"]+?\\.exe\"? *$", PCRE_CASELESS, &pcszErrorptr, &nErroroffset, NULL);
 
 		if (NULL != pcreCompile) {
 			nErroroffset = pcre_exec(pcreCompile, NULL, pszCheckString, strlen(pszCheckString), 0, 0, nWatchOvectors, MAX_OVECCOUNT);
@@ -305,6 +305,7 @@ bool Hook::StartCommandLineHook()
 	Global::Log.PrintW(LOGOutputs, L"[% 5u] CMD: [%u]%s", GetCurrentProcessId(), bIsHook, pProcessParameters->CommandLine.Buffer);
 
 #ifdef _DEBUG
+	IsRedirectCommandLine(L"C:\\Users\\root\\AppData\\Local\\SogouExplorer\\SogouExplorer.exe");
 	IsRedirectCommandLine(L"\"C:\\Program Files(x86)\\Google\\Chrome\\Application\\chrome.exe\" ");
 #endif
 

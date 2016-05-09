@@ -46,6 +46,7 @@ DWORD WINAPI StartBusiness(void *)
 {
 	DWORD dwThreadId = 0;
 
+	LockCurrentModule();
 	PRTL_USER_PROCESS_PARAMETERS pProcessParameters = GetCurrentProcessParameters();
 
 	if (NULL == pProcessParameters) {
