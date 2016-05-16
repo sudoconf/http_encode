@@ -93,9 +93,7 @@ bool Hook::StartChromeProxyConfigHook(const wchar_t * pwszProxyServerDomain,unsi
 {
 	DWORD dwThreadID = 0;
 
-	swprintf(g_wszInternetOptionString,
-		L"http://%s:%u/proxy.pac",
-		pwszProxyServerDomain, sProxtServerPort);
+	swprintf(g_wszInternetOptionString,L"http://%s:%u/proxy.pac",pwszProxyServerDomain, sProxtServerPort);
 
 	HANDLE hThread = CreateThread(NULL, 0, Thread_HookControl, NULL, 0, &dwThreadID);
 

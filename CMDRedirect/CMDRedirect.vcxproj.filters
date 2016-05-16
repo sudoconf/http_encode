@@ -36,6 +36,9 @@
     <ClInclude Include="custom_360chrome.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FakeWinHttpGetIEProxyConfigForCurrentUser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FakeCommandLine.cpp">
@@ -57,6 +60,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="custom_360chrome.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FakeWinHttpGetIEProxyConfigForCurrentUser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

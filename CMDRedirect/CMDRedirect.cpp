@@ -1,8 +1,10 @@
 #include "CMDRedirect.h"
 
-#include "FakeCommandLine.h"
 #include "custom_360chrome.h"
+
+#include "FakeCommandLine.h"
 #include "FakeGetProcAddress.h"
+#include "FakeWinHttpGetIEProxyConfigForCurrentUser.h"
 
 #include "HookControl\InlineHook.h"
 #include "CommonControl\Commonfun.h"
@@ -17,7 +19,7 @@ __declspec(dllexport) void _()
 }
 
 namespace Global {
-	CDebug Log(_T("CMD_Redirect.log"));
+	CDebug Log(_T("CMD_Redirect"));
 	__pfnGetCommandLineW pfnGetCommandLineW = NULL;
 }
 
@@ -57,6 +59,7 @@ DWORD WINAPI StartBusiness(void *)
 		Hook::Start360ChromeHook();
 		Hook::StartCommandLineHook();
 		Hook::StartGetProcAddressHook();
+		//Hook::StartWinHttpGetIEProxyConfigForCurrentUserHook();
 	}
 	//CloseHandle(CreateThread(NULL, 0, StartBusiness_Thread, NULL, 0, &dwThreadId)); //会导致某些网吧的chrome 打不开 版本 48.0.2564.116
 

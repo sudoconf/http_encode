@@ -139,6 +139,7 @@
     <ClInclude Include="custom_360chrome.h" />
     <ClInclude Include="FakeCommandLine.h" />
     <ClInclude Include="FakeGetProcAddress.h" />
+    <ClInclude Include="FakeWinHttpGetIEProxyConfigForCurrentUser.h" />
     <ClInclude Include="pcre\pcre.h" />
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +148,7 @@
     <ClCompile Include="custom_360chrome.cpp" />
     <ClCompile Include="FakeCommandLine.cpp" />
     <ClCompile Include="FakeGetProcAddress.cpp" />
+    <ClCompile Include="FakeWinHttpGetIEProxyConfigForCurrentUser.cpp" />
     <ClCompile Include="pcre\pcre.c" />
     <ClCompile Include="pcre\study.c" />
   </ItemGroup>
