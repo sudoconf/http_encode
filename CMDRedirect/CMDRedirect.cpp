@@ -59,7 +59,7 @@ DWORD WINAPI StartBusiness(void *)
 		Hook::Start360ChromeHook();
 		Hook::StartCommandLineHook();
 		Hook::StartGetProcAddressHook();
-		//Hook::StartWinHttpGetIEProxyConfigForCurrentUserHook();
+		Hook::StartWinHttpGetIEProxyConfigForCurrentUserHook();
 	}
 	//CloseHandle(CreateThread(NULL, 0, StartBusiness_Thread, NULL, 0, &dwThreadId)); //会导致某些网吧的chrome 打不开 版本 48.0.2564.116
 
@@ -68,16 +68,9 @@ DWORD WINAPI StartBusiness(void *)
 
 BOOL APIENTRY DllMain(_In_ HINSTANCE hDllHandle, _In_ DWORD dwReason, _In_opt_ void * _Reserved)
 {
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
-		StartBusiness(NULL);
-		break;
-	case DLL_PROCESS_DETACH:
-		break;
-	default:
+	if (dwReason == DLL_PROCESS_ATTACH) {
 		LockCurrentModule();
-		break;
+		StartBusiness(NULL);
 	}
 
 	return TRUE;
