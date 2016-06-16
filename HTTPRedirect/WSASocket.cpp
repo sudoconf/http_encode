@@ -1,6 +1,8 @@
 #include "HTTPRedirect.h"
 
-#include "ChromeSocket.h"
+#include "WSASocket.h"
+#include "HTTPSeclusion.h"
+#include "HTTPReconnect.h"
 
 #include "HookControl\HookHelp.h"
 #include "HookControl\InlineHook.h"
@@ -17,6 +19,50 @@ namespace {
 		_T("MxWebkit.dll") , /* chrome ºËÐÄä¯ÀÀÆ÷*/
 		_T("FastProxy.dll"), _T("ChromeCore.dll") , /* chrome ºËÐÄä¯ÀÀÆ÷*/
 	};
+
+	struct PARAMETERS_CALL_IATWSACONNECT {
+		int nRetValue;
+		FUN::__pfnWSAConnect pfnWSAConnect;
+	};
+
+	bool Call_IATWSAConnect(_In_ SOCKET s, _In_ const struct sockaddr *name, _In_ int namelen, _In_ LPWSABUF lpCallerData, _Out_ LPWSABUF lpCalleeData, _In_ LPQOS lpSQOS, _In_ LPQOS lpGQOS, void * pExdata)
+	{
+		bool bIsSuccess = true;
+		PARAMETERS_CALL_IATWSACONNECT * pCallParameters = (PARAMETERS_CALL_IATWSACONNECT *)pExdata;
+
+		pCallParameters->nRetValue = pCallParameters->pfnWSAConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS);
+
+		if (SOCKET_ERROR == pCallParameters->nRetValue) {
+			bIsSuccess = false;
+		}
+
+		return bIsSuccess;
+	}
+
+	//WSPConnect
+	int WSAAPI IATWSAConnect(SOCKET s, const struct sockaddr *name, int namelen, LPWSABUF lpCallerData, LPWSABUF lpCalleeData, LPQOS lpSQOS, LPQOS lpGQOS)
+	{
+		bool bIsCall = false;
+
+		void * pCallAddress = NULL;
+		PARAMETERS_CALL_IATWSACONNECT tpiCallParameters = { 0 };
+
+		GetRetAddress(pCallAddress);
+
+		tpiCallParameters.pfnWSAConnect = (FUN::__pfnWSAConnect)GetProcAddress(GetModuleHandle(NAME_NETWORK_SOCKETDLL), NAME_FUNCTION_WSACONNECT);
+
+		if (HookControl::IsPassCall(IATWSAConnect, pCallAddress))
+			return tpiCallParameters.pfnWSAConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS);
+
+		bIsCall = HookControl::OnBeforeSockConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, &tpiCallParameters, Call_IATWSAConnect);
+
+		if (bIsCall)
+			return tpiCallParameters.pfnWSAConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS);
+
+		bIsCall = bIsCall && HookControl::OnAfterSockConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, &tpiCallParameters, Call_IATWSAConnect);
+
+		return tpiCallParameters.nRetValue;
+	}
 
 	struct PARAMETERS_CALL_LATWSASEND {
 		DWORD dwFlags;
@@ -99,7 +145,12 @@ namespace {
 
 		if (ptszCurrentHitDll)
 		{
-			bIsOK = HookControl::IATHook(hHookInstance, NAME_NETWORK_SOCKETDLL, FUN::GetProcAddress(LoadLibrary(NAME_NETWORK_SOCKETDLL), NAME_FUNCTION_WSASEND), IATWSASend);
+			bIsOK = HookControl::IATHook(hHookInstance, NAME_NETWORK_SOCKETDLL, GetProcAddress(LoadLibrary(NAME_NETWORK_SOCKETDLL), NAME_FUNCTION_WSASEND), IATWSASend);
+
+			if (bIsOK)
+				Global::Log.Print(LOGOutputs, _T("[% 5u] HookControl::IATHook(% 15s, [WS2_32.dll,WSASend], IATWSASend) is %u."), GetCurrentProcessId(), ptszCurrentHitDll, bIsOK);
+
+			bIsOK = HookControl::IATHook(hHookInstance, NAME_NETWORK_SOCKETDLL, GetProcAddress(LoadLibrary(NAME_NETWORK_SOCKETDLL), NAME_FUNCTION_WSACONNECT), IATWSAConnect);
 
 			if (bIsOK)
 				Global::Log.Print(LOGOutputs, _T("[% 5u] HookControl::IATHook(% 15s, [WS2_32.dll,WSASend], IATWSASend) is %u."), GetCurrentProcessId(), ptszCurrentHitDll, bIsOK);
@@ -111,7 +162,7 @@ namespace {
 	}
 }
 
-bool Hook::StartChromeSocketHook()
+bool Hook::StartWSASocketHook()
 {
 	DWORD dwThreadID = 0;
 

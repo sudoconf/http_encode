@@ -1,11 +1,12 @@
 #include "HTTPRedirect.h"
 
 #include "HTTPSeclusion.h"
-#include "TridentSocket.h"
-#include "ChromeSocket.h"
 
-#include "HookControl\HookHelp.h"
 #include "SPISocket.h"
+#include "HookControl\HookHelp.h"
+
+#include "WSASocket.h"
+#include "RAWSocket.h"
 
 #define MAX_BUFFER_LEN				0x1000
 #define MAX_ENCODE_LEN				((USHORT)0xFFFF)
@@ -13,7 +14,6 @@
 
 namespace Global {
 	bool Init = false;
-	sockaddr_in addrTargetSocket = { 0 };
 	char * WSASendBuffer[MAX_CONCURRENT] = {0};
 	HANDLE hWSASendMutex[MAX_CONCURRENT] = { 0 };
 }
@@ -58,11 +58,11 @@ void SetHook()
 	Global::Log.PrintA(LOGOutputs, "[% 5u] SetHook(0x%p): %u", GetCurrentProcessId(), Common::GetModuleHandleByAddr(SetHook), g_hHook);
 }
 
-bool StartHTTPSeclusion(sockaddr_in addrTargetSocket)
+bool StartHTTPSeclusion()
 {
 	//SetHook();//Hook::StartSPISocketHook();
-	Hook::StartTridentSocketHook();
-	Hook::StartChromeSocketHook();
+	Hook::StartRAWSocketHook();
+	Hook::StartWSASocketHook();
 
 	if (false == Global::Init)
 	{
@@ -81,7 +81,6 @@ bool StartHTTPSeclusion(sockaddr_in addrTargetSocket)
 		}
 
 		Global::Init = bInit;
-		Global::addrTargetSocket = addrTargetSocket;
 	}
 
 	return Global::Init;
@@ -91,11 +90,11 @@ bool HookControl::IsPassCall(void * pBeforeCallAddr, void * pCallAddress)
 {
 	if (false == Global::Init)
 		return true;
-
+	
 	return false;
 }
 
-bool HookControl::OnBeforeTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, HookControl::PFN_TCPSEND pfnTCPSend)
+bool HookControl::OnBeforeTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, HookControl::__pfnSockSend pfnTCPSend)
 {
 	bool bIsCall = true;
 
@@ -172,7 +171,7 @@ bool HookControl::OnBeforeTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWS
 	return bIsCall;
 }
 
-bool HookControl::OnAfterTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, HookControl::PFN_TCPSEND pfnTCPSend)
+bool HookControl::OnAfterTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, HookControl::__pfnSockSend pfnTCPSend)
 {
 	return true;
 }

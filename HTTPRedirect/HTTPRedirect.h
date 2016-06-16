@@ -13,7 +13,15 @@
 #define NAME_FUNCTION_WSASEND										"WSASend"
 #define NAME_FUNCTION_WSPSTARTUP								"WSPStartup"
 
+#define NAME_FUNCTION_CONNECT												"connect"
+#define NAME_FUNCTION_WSACONNECT										"WSAConnect"
+
 #define NAME_NETWORK_SOCKETDLL									_T("WS2_32.dll")
+
+#define MAX_IP4_STRING_LEN		16
+#define MAX_IP6_STRING_LEN		46
+
+#define MAX_IP_STRING_LEN		MAX_IP6_STRING_LEN
 
 typedef struct
 {
@@ -22,6 +30,13 @@ typedef struct
 	LPWSTR  lpszProxy;
 	LPWSTR  lpszProxyBypass;
 } WINHTTP_CURRENT_USER_IE_PROXY_CONFIG;
+
+typedef struct _BUSINESS_DATA {
+	USHORT usPACServerProt;
+	CHAR szPACServerIP[MAX_IP_STRING_LEN + 1];
+	USHORT usEncodeSockProt;
+	CHAR szEncodeSockIP[MAX_IP_STRING_LEN + 1];
+}BUSINESS_DATA, *PBUSINESS_DATA;
 
 namespace FUN {
 	typedef FARPROC(WINAPI * __pfnGetProcAddress)(_In_ HMODULE hModule, _In_ LPCSTR lpProcName);
@@ -40,15 +55,10 @@ namespace FUN {
 	extern FUN::__pfnGetCommandLineW GetCommandLineW;
 }
 
-namespace HookControl {
-	typedef bool(*PFN_TCPSEND)(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata);
-
-	bool OnAfterTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, PFN_TCPSEND pfnTCPSend);
-	bool OnBeforeTCPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata, PFN_TCPSEND pfnTCPSend);
-}
-
 namespace Global {
 	extern CDebug Log;
+	extern sockaddr_in addrTargetSocket;
+	extern PBUSINESS_DATA pBusinessData;
 }
 
 inline bool LockCurrentModule() {

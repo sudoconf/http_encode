@@ -36,14 +36,14 @@
     <ClInclude Include="SPIInstaller.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ChromeSocket.h">
-      <Filter>头文件\Seclusion</Filter>
-    </ClInclude>
-    <ClInclude Include="TridentSocket.h">
-      <Filter>头文件\Seclusion</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\common_fundadores.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WSASocket.h">
+      <Filter>头文件\Seclusion</Filter>
+    </ClInclude>
+    <ClInclude Include="RAWSocket.h">
+      <Filter>头文件\Seclusion</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -59,17 +59,17 @@
     <ClCompile Include="SPISocket.cpp">
       <Filter>源文件\Seclusion</Filter>
     </ClCompile>
-    <ClCompile Include="ChromeSocket.cpp">
-      <Filter>源文件\Seclusion</Filter>
-    </ClCompile>
-    <ClCompile Include="TridentSocket.cpp">
-      <Filter>源文件\Seclusion</Filter>
-    </ClCompile>
     <ClCompile Include="SPIInstaller.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\common\common_fundadores.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WSASocket.cpp">
+      <Filter>源文件\Seclusion</Filter>
+    </ClCompile>
+    <ClCompile Include="RAWSocket.cpp">
+      <Filter>源文件\Seclusion</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

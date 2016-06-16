@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPRedirect", "HTTPRedirect\HTTPRedirect.vcxproj", "{08886773-B85D-4681-967F-398D04550B6B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CMDRedirect", "CMDRedirect\CMDRedirect.vcxproj", "{023668C9-9006-4FC4-B102-7F1C81F6EC11}"
 EndProject
 Global
@@ -15,14 +13,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{08886773-B85D-4681-967F-398D04550B6B}.Debug|x64.ActiveCfg = Debug|x64
-		{08886773-B85D-4681-967F-398D04550B6B}.Debug|x64.Build.0 = Debug|x64
-		{08886773-B85D-4681-967F-398D04550B6B}.Debug|x86.ActiveCfg = Debug|Win32
-		{08886773-B85D-4681-967F-398D04550B6B}.Debug|x86.Build.0 = Debug|Win32
-		{08886773-B85D-4681-967F-398D04550B6B}.Release|x64.ActiveCfg = Release|x64
-		{08886773-B85D-4681-967F-398D04550B6B}.Release|x64.Build.0 = Release|x64
-		{08886773-B85D-4681-967F-398D04550B6B}.Release|x86.ActiveCfg = Release|Win32
-		{08886773-B85D-4681-967F-398D04550B6B}.Release|x86.Build.0 = Release|Win32
 		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x64.ActiveCfg = Debug|x64
 		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x64.Build.0 = Debug|x64
 		{023668C9-9006-4FC4-B102-7F1C81F6EC11}.Debug|x86.ActiveCfg = Debug|Win32

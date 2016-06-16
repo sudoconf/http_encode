@@ -70,6 +70,7 @@ namespace {
 	const wchar_t * ptszHitProcessNameLists[] = {
 		_W("iexplore.exe")/* IE 核心浏览器*/,
 
+		_W("maxthon.exe")/* 遨游 核心浏览器*/,
 		_W("liebao.exe")/* 猎豹 核心浏览器*/,
 		_W("360se.exe")/* 360安全 核心浏览器*/,
 		_W("360chrome.exe")/* 360极速 核心浏览器*/,

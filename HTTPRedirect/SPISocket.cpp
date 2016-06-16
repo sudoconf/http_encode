@@ -8,6 +8,8 @@
 #include "SPISocket.h"
 #include "SPIInstaller.h"
 #include "HTTPRedirect.h"
+#include "HTTPSeclusion.h"
+#include "HTTPReconnect.h"
 
 namespace Global {
 	WSPPROC_TABLE ProcTable = { 0 };
@@ -63,19 +65,19 @@ void FreeLSP()
 /********************************* 改写WSP函数，只有WSPConnect被改写成调用socksProxy函数，其它的直接调用下层WSP函数 ****************************************/
 
 struct PARAMETERS_CALL_LSPWSASEND {
+	int nRetValue;
 	DWORD dwFlags;
 	LPWSATHREADID lpThreadId;
 };
 
 bool Call_LSPWSPSend(__in SOCKET s, __in_ecount(dwBufferCount) LPWSABUF lpBuffers, __in DWORD dwBufferCount, __out_opt LPDWORD lpNumberOfBytesSent, __in int * pnErrorcode, __in LPWSAOVERLAPPED lpOverlapped, __in LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine, void * pExdata)
 {
-	int nRetValue = 0;
 	bool bIsSuccess = true;
 	PARAMETERS_CALL_LSPWSASEND * pCallParameters = (PARAMETERS_CALL_LSPWSASEND *)pExdata;
 
-	nRetValue = Global::ProcTable.lpWSPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, pCallParameters->dwFlags, lpOverlapped, lpCompletionRoutine, pCallParameters->lpThreadId, pnErrorcode);
+	pCallParameters->nRetValue = Global::ProcTable.lpWSPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, pCallParameters->dwFlags, lpOverlapped, lpCompletionRoutine, pCallParameters->lpThreadId, pnErrorcode);
 
-	if (SOCKET_ERROR == nRetValue)
+	if (SOCKET_ERROR == pCallParameters->nRetValue)
 		bIsSuccess = (WSA_IO_PENDING == *pnErrorcode);
 
 	return bIsSuccess;
@@ -101,20 +103,58 @@ int WINAPI LSPWSPSend(__in SOCKET s, __in LPWSABUF lpBuffers, __in DWORD dwBuffe
 	bIsCall = HookControl::OnBeforeTCPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, lpErrno, lpOverlapped, lpCompletionRoutine, &tpiCallParameters, Call_LSPWSPSend);
 
 	if (bIsCall)
-		nRetValue = Global::ProcTable.lpWSPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, dwFlags, lpOverlapped, lpCompletionRoutine, lpThreadId, lpErrno);
+		return Global::ProcTable.lpWSPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, dwFlags, lpOverlapped, lpCompletionRoutine, lpThreadId, lpErrno);
 
 	bIsCall = bIsCall && HookControl::OnAfterTCPSend(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, lpErrno, lpOverlapped, lpCompletionRoutine, &tpiCallParameters, Call_LSPWSPSend);
 
 	if (false == bIsCall && (0 != *lpErrno && WSA_IO_PENDING != *lpErrno))
-		nRetValue = SOCKET_ERROR;
+		tpiCallParameters.nRetValue = SOCKET_ERROR;
 
-	return nRetValue;
+	return tpiCallParameters.nRetValue;
+}
+
+struct PARAMETERS_CALL_LSPWSACONNECT {
+	int nRetValue;
+	LPINT lpErrno;
+};
+
+bool Call_LSPWSPConnect(_In_ SOCKET s, _In_ const struct sockaddr *name, _In_ int namelen, _In_ LPWSABUF lpCallerData, _Out_ LPWSABUF lpCalleeData, _In_ LPQOS lpSQOS, _In_ LPQOS lpGQOS, void * pExdata)
+{
+	bool bIsSuccess = true;
+	PARAMETERS_CALL_LSPWSACONNECT * pCallParameters = (PARAMETERS_CALL_LSPWSACONNECT *)pExdata;
+
+	pCallParameters->nRetValue = Global::ProcTable.lpWSPConnect(s, name, namelen, lpCallerData,lpCalleeData, lpSQOS, lpGQOS, pCallParameters->lpErrno);
+
+	if (SOCKET_ERROR == pCallParameters->nRetValue) {
+		bIsSuccess = false;
+	}
+
+	return bIsSuccess;
 }
 
 //WSPConnect
-int WSPAPI WSPConnect(SOCKET s, const struct sockaddr *name, int namelen, LPWSABUF lpCallerData, LPWSABUF lpCalleeData, LPQOS lpSQOS, LPQOS lpGQOS, LPINT lpErrno)
+int WSPAPI LSPWSPConnect(SOCKET s, const struct sockaddr *name, int namelen, LPWSABUF lpCallerData, LPWSABUF lpCalleeData, LPQOS lpSQOS, LPQOS lpGQOS, LPINT lpErrno)
 {
-	return Global::ProcTable.lpWSPConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, lpErrno);
+	bool bIsCall = false;
+
+	void * pCallAddress = NULL;
+	PARAMETERS_CALL_LSPWSACONNECT tpiCallParameters = { 0 };
+
+	GetRetAddress(pCallAddress);
+
+	tpiCallParameters.lpErrno = lpErrno;
+
+	if (HookControl::IsPassCall(LSPWSPConnect, pCallAddress))
+		return Global::ProcTable.lpWSPConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, lpErrno);
+
+	bIsCall = HookControl::OnBeforeSockConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, &tpiCallParameters, Call_LSPWSPConnect);
+
+	if (bIsCall)
+		return Global::ProcTable.lpWSPConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, lpErrno);
+
+	bIsCall = bIsCall && HookControl::OnAfterSockConnect(s, name, namelen, lpCallerData, lpCalleeData, lpSQOS, lpGQOS, &tpiCallParameters, Call_LSPWSPConnect);
+
+	return tpiCallParameters.nRetValue;
 }
 
 //WSPSocket
@@ -221,10 +261,10 @@ int WSPAPI WSPStartup(WORD wversionrequested, LPWSPDATA lpwspdata, LPWSAPROTOCOL
 		lpproctable->lpWSPRecv = WSPRecv;
 		lpproctable->lpWSPSocket = WSPSocket;
 		lpproctable->lpWSPSendTo = WSPSendTo;
-		lpproctable->lpWSPConnect = WSPConnect;
 		lpproctable->lpWSPRecvFrom = WSPRecvFrom;
 
 		lpproctable->lpWSPSend = LSPWSPSend;
+		lpproctable->lpWSPConnect = LSPWSPConnect;
 	} while (false);
 
 	FreeLSP();

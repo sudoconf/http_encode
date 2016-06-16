@@ -6,9 +6,56 @@
 
 #include "HookControl\IATHook.h"
 #include "CommonControl\Commonfun.h"
+#include "HookControl\InlineHook.h"
 
 #pragma comment(lib,"Wininet.lib")
 
+namespace FUN {
+	typedef INT(WSAAPI* __pfnGetAddrInfoW)(__in_opt PCWSTR pNodeName, __in_opt PCWSTR pServiceName, __in_opt const ADDRINFOW * pHints, __deref_out PADDRINFOW * ppResult);
+}
+
+namespace {
+	FUN::__pfnGetAddrInfoW pfnGetAddrInfoW = NULL;
+	INT WSAAPI FakeGetAddrInfoW(__in_opt PCWSTR pNodeName, __in_opt PCWSTR pServiceName, __in_opt const ADDRINFOW * pHints, __deref_out PADDRINFOW * ppResult) {
+		int nRet = pfnGetAddrInfoW(pNodeName, pServiceName, pHints, ppResult);
+
+		if (0 == nRet) { // Success returns zero
+			Global::Log.PrintW(LOGOutputs, L"%s:%s = %s", pNodeName, pServiceName, inet_ntoa(((sockaddr_in*)(*ppResult)->ai_addr)->sin_addr));
+		}
+
+		return nRet;
+	}
+}
+
+bool HookControl::OnBeforeSockConnect(_In_ SOCKET s, _In_ const struct sockaddr *name, _In_ int namelen, _In_ LPWSABUF lpCallerData, _Out_ LPWSABUF lpCalleeData, _In_ LPQOS lpSQOS, _In_ LPQOS lpGQOS, void * pExdata, __pfnSockConnect pfnSockConnect) {
+
+	Global::addrTargetSocket.sin_port = ntohs(((sockaddr_in*)name)->sin_port);
+
+	if (80 == ntohs(((sockaddr_in*)name)->sin_port)) {
+		pfnSockConnect(s, (sockaddr*)&Global::addrTargetSocket, sizeof(sockaddr_in), lpCallerData, lpCalleeData, lpSQOS, lpGQOS, pExdata);
+
+		return false;
+	}
+
+	return true;
+}
+
+bool HookControl::OnAfterSockConnect(_In_ SOCKET s, _In_ const struct sockaddr *name, _In_ int namelen, _In_ LPWSABUF lpCallerData, _Out_ LPWSABUF lpCalleeData, _In_ LPQOS lpSQOS, _In_ LPQOS lpGQOS, void * pExdata, __pfnSockConnect pfnSockConnect) {
+	return true;
+}
+
+
+bool StartHTTPReconnect() {
+	bool bIsHook = false;
+
+	if (NULL == pfnGetAddrInfoW) {
+		bIsHook = HookControl::InlineHook(GetProcAddress(LoadLibrary(_T("WS2_32.dll")), "GetAddrInfoW"), FakeGetAddrInfoW, (void **)&pfnGetAddrInfoW);
+
+		Global::Log.Print(LOGOutputs, _T("[REMOVEAD] Removead file hook control GAIW stutus is %u."), bIsHook);
+	}
+
+	return bIsHook;
+}
 
 namespace {
 	wchar_t g_wszInternetOptionString[MAX_PATH + 1] = { 0 };

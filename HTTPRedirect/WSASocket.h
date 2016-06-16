@@ -1,6 +1,5 @@
 #pragma once
 
 namespace Hook {
-	bool StartTridentSocketHook();
+	bool StartWSASocketHook();
 }
-

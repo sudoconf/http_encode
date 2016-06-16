@@ -143,23 +143,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\common\common_fundadores.h" />
-    <ClInclude Include="ChromeSocket.h" />
+    <ClInclude Include="WSASocket.h" />
     <ClInclude Include="HTTPReconnect.h" />
     <ClInclude Include="HTTPRedirect.h" />
     <ClInclude Include="HTTPSeclusion.h" />
     <ClInclude Include="SPIInstaller.h" />
     <ClInclude Include="SPISocket.h" />
-    <ClInclude Include="TridentSocket.h" />
+    <ClInclude Include="RAWSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\common\common_fundadores.cpp" />
-    <ClCompile Include="ChromeSocket.cpp" />
+    <ClCompile Include="WSASocket.cpp" />
     <ClCompile Include="HTTPReconnect.cpp" />
     <ClCompile Include="HTTPRedirect.cpp" />
     <ClCompile Include="HTTPSeclusion.cpp" />
     <ClCompile Include="SPIInstaller.cpp" />
     <ClCompile Include="SPISocket.cpp" />
-    <ClCompile Include="TridentSocket.cpp" />
+    <ClCompile Include="RAWSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SPISource.def" />
