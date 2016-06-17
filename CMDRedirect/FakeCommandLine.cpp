@@ -286,7 +286,7 @@ LPWSTR WINAPI InlineGetCommandLineW(VOID)
 	if (IsRedirectCommandLine(pcwszStartCommandLine)) {
 		LPCWSTR pcwszImageFileName = wcsrchr(pProcessParameters->ImagePathName.Buffer, L'\\');
 		if (pcwszImageFileName && 0 == _wcsnicmp(pcwszImageFileName, L"\\rungame.exe", 12)) {
-			Global::Log.PrintW(LOGOutputs, L"Refuse command line redirect to %s(%s)", &pProcessParameters->ImagePathName.Buffer[pProcessParameters->ImagePathName.Length - 12], pcwszStartCommandLine);
+			Global::Log.PrintW(LOGOutputs, L"Refuse command line redirect to %s", pcwszStartCommandLine);
 
 			return pcwszStartCommandLine;
 		}
@@ -294,7 +294,7 @@ LPWSTR WINAPI InlineGetCommandLineW(VOID)
 		pcwszStartCommandLine = ustrCommandLine.Buffer;
 		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pProcessParameters->ImagePathName.Buffer, pcwszNewParameter);
 
-		Global::Log.PrintW(LOGOutputs, L"New command line redirect to %s(%s)", &pProcessParameters->ImagePathName.Buffer[pProcessParameters->ImagePathName.Length - 12], pcwszStartCommandLine);
+		Global::Log.PrintW(LOGOutputs, L"New command line redirect to %s", pcwszStartCommandLine);
 	}
 
 	return pcwszStartCommandLine;
