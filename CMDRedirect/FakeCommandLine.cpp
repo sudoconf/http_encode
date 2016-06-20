@@ -17,6 +17,7 @@ namespace {
 		_S("\\\\liebao\\.exe\"? +--ico\\d(?: |$)"),
 		_S("\\\\qqbrowser\\.exe\"? +-sc=[^ ]+shortcut(?: |$)"),
 		_S("\\\\2345explorer\\.exe\"? +--shortcut=[^ ]+(?: |$)"),
+		_S("\\\\f1browser\\.exe\"? +--startup_desktopshortcut+(?: |$)"),
 
 		_S("(?: |http[s]?://)hao\\.360\\.cn/*(?:index[\\.]?(?:htm[l]?|php)?)?(?:\\?[^ ]*)?(?: |$)"),
 
