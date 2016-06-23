@@ -23,7 +23,6 @@ namespace {
 		pwszOldAutoConfigUrl = pProxyConfig->lpszAutoConfigUrl;
 
 		Global::Log.PrintW(LOGOutputs, L"[% 5u] HookControl::IATWinHttpGetIEProxyConfigForCurrentUser(%s,%s)", GetCurrentProcessId(), pProxyConfig->lpszAutoConfigUrl, g_wszInternetOptionString);
-
 		pProxyConfig->lpszAutoConfigUrl = (LPWSTR)GlobalAlloc(GMEM_FIXED, (wcslen(g_wszInternetOptionString) + 1) * sizeof(g_wszInternetOptionString));
 
 		if (NULL == pProxyConfig->lpszAutoConfigUrl)
@@ -37,6 +36,10 @@ namespace {
 			GlobalFree(pwszOldAutoConfigUrl);
 
 		wcscpy(pProxyConfig->lpszAutoConfigUrl, g_wszInternetOptionString);
+
+		if (Common::IsCurrentProcess(_T("f1browser.exe"))) { // F1 浏览器设置代理后会打不开网页
+			wcscpy(pProxyConfig->lpszAutoConfigUrl, L"");
+		}
 
 		return TRUE;
 	}
